@@ -1,0 +1,30 @@
+.OrderList {
+	background-color: #152128;
+	width: 100%;
+	height: 400px;
+	overflow-y: auto;
+}
+
+#OrderList-table {
+	width: 100%;
+}
+
+.OrderList-table-entry {
+	color: #9aa3ad !important;
+}
+
+.OrderList-table-header {
+	color: #9aa3ad !important;
+	background-color: #0b1216 !important;
+	font-size: 1.2rem;
+}
+
+.OrderList-loading {
+	color: #9aa3ad;
+	font-size: 2rem;
+	height: 100%;
+	width: 100%;
+	margin: auto 0;
+	text-align: center;
+	padding-top: 50%;
+}

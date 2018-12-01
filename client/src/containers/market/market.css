@@ -1,0 +1,46 @@
+.Market {
+	background-color: #202930;
+	color: #9aa3ad;
+	min-height: 100vh;
+	height: 100%;
+	width: 100%;
+	padding: 3rem 30.5rem 3rem 8rem;
+}
+
+.Market-h1 {
+	font-size: 2.5rem;
+	line-height: 0.8;
+	letter-spacing: .1px;
+	font-weight: 300;
+	margin: 0;
+}
+
+#Market-title {
+	padding-bottom: 2rem;
+}
+
+#Market-chart {
+	padding-bottom: 2rem;
+}
+
+#Market-buysell {
+	padding-bottom: 2rem;
+}
+
+#Market-orderlists {
+}
+
+.Market-headers {
+	font-size: 1.5rem;
+	font-weight: 600;
+	line-height: 2rem;
+	padding: 0.25rem;
+}
+
+.red {
+	color: red;
+}
+
+.green {
+	color: green;
+}

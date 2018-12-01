@@ -1,0 +1,23 @@
+#Infobar {
+	background-color: #152128;
+	color: #9aa3ad;
+	width: 27.5rem;
+	min-height: 100vh;
+	height: 100%;
+	padding: 0;
+	margin: 0;
+	position: fixed;
+	right: 0;
+	top: 0;
+}
+
+.Infobar-header {
+	padding: 2rem;
+}
+.Infobar-item {
+	padding: 2rem;
+}
+
+.Infobar-table-entry {
+	color: #9aa3ad !important;
+}

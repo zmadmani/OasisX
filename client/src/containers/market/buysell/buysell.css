@@ -1,0 +1,15 @@
+.BuySell {
+	background-color: #152128;
+	width: 100%;
+	padding: 1.5rem;
+}
+
+.BuySell-headers {
+	font-size: 1.15rem;
+	font-weight: 600;
+	line-height: 2rem;
+}
+
+.BuySell-button {
+	margin-right: 1rem !important;
+}
