@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import { ContractData, ContractForm } from 'drizzle-react-components'
 import { Table } from 'semantic-ui-react'
 
 import './orderlist.css'
@@ -8,16 +7,80 @@ class OrderList extends Component {
   constructor(props) {
     super(props)
     this.state = {
+      offersKey: null
     }
   }
 
-  componentWillMount() {
+  componentWillReceiveProps(nextProps) {
+    this.setState({ offersKey: nextProps.offersKey })
+  }
+
+  numberWithCommas(x) {
+      var parts = x.toString().split(".");
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      return parts.join(".");
   }
 
   render() {
-    var { currencies, orders } = this.props
+    var { offersKey } = this.state
+    var { currencies, type, setSidebar } = this.props
+    var { SupportMethods } = this.props.drizzleState.contracts
 
-    if(orders.length === 0) {
+    var offersRaw = {
+      "ids": []
+    }
+
+    if(offersKey in SupportMethods.getOffers) {
+      offersRaw = SupportMethods.getOffers[offersKey].value
+    }
+
+    if(!offersRaw) {
+      return (
+        <div className="OrderList">
+          <div className="OrderList-loading">Error...</div>
+        </div>
+      )
+    }
+
+    var n = offersRaw["ids"].length
+    var offers = []
+    for(var i = 0; i < n; i++) {
+      if(offersRaw["ids"][i] !== "0") {
+        var id = offersRaw["ids"][i]
+        var pay_amount = this.props.drizzle.web3.utils.fromWei(offersRaw["payAmts"][i].toString(), 'ether')
+        var buy_amount = this.props.drizzle.web3.utils.fromWei(offersRaw["buyAmts"][i].toString(), 'ether') 
+        var price = 0
+        var offer = {}
+        if(type === "buy") {
+          price = Math.round(pay_amount / buy_amount * 1000) / 1000
+          buy_amount = Math.round(buy_amount * 1000) / 1000
+          pay_amount = Math.round(pay_amount * 1000) / 1000
+          offer = {
+            "price": price,
+            "curr_0_amt": buy_amount,
+            "curr_1_amt": pay_amount,
+            "id": id,
+            "type": type
+          }
+        } else {
+          price = Math.round(buy_amount / pay_amount * 1000) / 1000
+          buy_amount = Math.round(buy_amount * 1000) / 1000
+          pay_amount = Math.round(pay_amount * 1000) / 1000
+          offer = {
+            "price": price,
+            "curr_0_amt": pay_amount,
+            "curr_1_amt": buy_amount,
+            "id": id,
+            "type": type
+          }
+        }
+        offers.push(offer)
+      } else {
+        break
+      }
+    }
+
+    if(offers.length === 0) {
       return (
         <div className="OrderList">
           <div className="OrderList-loading">Loading...</div>
@@ -27,7 +90,7 @@ class OrderList extends Component {
 
     return (
       <div className="OrderList">
-        <Table selectable basic celled columns={3} id="OrderList-table">
+        <Table selectable basic celled id="OrderList-table">
           <Table.Header>
             <Table.Row>
               <Table.HeaderCell className='OrderList-table-header' textAlign='left'>Price</Table.HeaderCell>
@@ -37,19 +100,19 @@ class OrderList extends Component {
           </Table.Header>
 
           <Table.Body id="OrderList-tableBody">
-            {orders.map((item, index) => {
+            {offers.map((item, index) => {
               return (
-                <Table.Row key={index}>
+                <Table.Row key={item["id"]} onClick={() => setSidebar(item) } className="OrderList-table-row">
                   <Table.Cell>
-                    <div className='OrderList-table-entry'>{item[0]}</div>
+                    <div className='OrderList-table-entry'>{this.numberWithCommas(item["price"])}</div>
                   </Table.Cell>
 
                   <Table.Cell>
-                    <div className='OrderList-table-entry'>{item[1]}</div>
+                    <div className='OrderList-table-entry'>{this.numberWithCommas(item["curr_0_amt"])}</div>
                   </Table.Cell>
 
                   <Table.Cell  textAlign='left'>
-                    <div className='OrderList-table-entry'>{item[2]}</div>
+                    <div className='OrderList-table-entry'>{this.numberWithCommas(item["curr_1_amt"])}</div>
                   </Table.Cell>
                 </Table.Row>
               )

@@ -5,6 +5,7 @@ import history from '../../history'
 import './App.css'
 
 import Market from '../market/market'
+import Home from '../home/home'
 import Navbar from '../navbar/navbar'
 import Infobar from '../infobar/infobar'
 
@@ -43,21 +44,24 @@ class App extends Component {
     var { drizzle } = this.props
 
     if(loading) {
-      return <div>"Loading Drizzle..."</div>
+      return <div id="App-loading-screen">Connecting to Ethereum...</div>
     }
     else {
       return (
         <div className="App">
-          <Navbar drizzle={drizzle} drizzleState={ drizzleState } />
-          <div id="App_market_container">
-            <Router history={history}>
-              <Switch>
-                <Route exact path='/WETH_DAI' render={() => <Market drizzle={drizzle} drizzleState={ drizzleState } pair={'WETH_DAI'} />} />
-                <Route exact path='/MKR_WETH' render={() => <Market drizzle={drizzle} drizzleState={ drizzleState } pair={'MKR_WETH'} />} />
-                <Route exact path='/MKR_DAI' render={() => <Market drizzle={drizzle} drizzleState={ drizzleState } pair={'MKR_DAI'} />} />
-              </Switch>
-            </Router>
-          </div>
+          <Router history={history}>
+            <div>
+              <Navbar drizzle={drizzle} drizzleState={ drizzleState } />
+              <div id="App_market_container">
+                  <Switch>
+                    <Route exact path='/' render={() => <Home drizzle={drizzle} drizzleState={ drizzleState } />} />
+                    <Route exact path='/WETH_DAI' render={() => <Market key={'WETH_DAI'} drizzle={drizzle} drizzleState={ drizzleState } pair={'WETH_DAI'} />} />
+                    <Route exact path='/MKR_WETH' render={() => <Market key={'MKR_WETH'} drizzle={drizzle} drizzleState={ drizzleState } pair={'MKR_WETH'} />} />
+                    <Route exact path='/MKR_DAI' render={() => <Market  key={'MKR_DAI'} drizzle={drizzle} drizzleState={ drizzleState } pair={'MKR_DAI'} />} />
+                  </Switch>
+              </div>
+            </div>
+          </Router>
           <Infobar drizzle={drizzle} drizzleState={ drizzleState } />
         </div>
       );

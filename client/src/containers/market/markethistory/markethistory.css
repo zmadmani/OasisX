@@ -1,0 +1,47 @@
+.MarketHistory {
+	background-color: #152128;
+	width: 100%;
+	height: 250px;
+	overflow-y: auto;
+}
+
+.MarketHistory-headers {
+	font-size: 1.15rem;
+	font-weight: 600;
+	line-height: 2rem;
+}
+
+.MarketHistory-button {
+	margin-right: 1rem !important;
+}
+
+.MarketHistory-table-entry {
+	color: #9aa3ad !important;
+}
+
+.MarketHistory-table-header {
+	color: #9aa3ad !important;
+	background-color: #0b1216 !important;
+	font-size: 1.2rem;
+}
+
+#MarketHistory-empty {
+	color: #9aa3ad !important;
+	opacity: 0.5;
+	font-size: 1.15rem;
+	font-weight: 600;
+	text-align: center;
+	width: 100%;
+	height: 100px;
+	padding-top: 25px;
+}
+
+.MarketHistory-type {
+	font-weight: 600;
+}
+
+.ui.table thead tr:first-child > th {
+     position: sticky !important;
+     top: 0;
+     z-index: 2;
+}

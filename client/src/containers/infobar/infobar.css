@@ -12,12 +12,29 @@
 }
 
 .Infobar-header {
-	padding: 2rem;
+	padding: 2rem 0rem;
+	width: 100%;
+	text-align: center;
+	font-weight: 600;
+	font-size: 1rem;
 }
+
 .Infobar-item {
 	padding: 2rem;
 }
 
 .Infobar-table-entry {
 	color: #9aa3ad !important;
+}
+
+#Infobar-table-header {
+	background-color: #0b1215;
+}
+
+.ui.basic.striped.table tbody tr:nth-child(2n) {
+	background-color: #111a21eb !important;
+}
+
+#Infobar-table {
+	margin-top: 0px !important;
 }

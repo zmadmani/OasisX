@@ -76,3 +76,15 @@ code {
   height: 16px;
   margin-right: 10px;
 }
+
+#App-loading-screen {
+  background-color: #202930;
+  height: 100vh;
+  width: 100vw;
+  color: #9aa3ad;
+  font-size: 2rem;
+  line-height: 2rem;
+  font-weight: 600;
+  text-align: center;
+  padding-top: 30%;
+}

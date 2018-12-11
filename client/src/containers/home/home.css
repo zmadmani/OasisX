@@ -1,0 +1,29 @@
+#Home {
+	background-color: #202930;
+	color: #9aa3ad;
+	min-height: 100vh;
+	height: 100%;
+	width: 100%;
+	padding: 10rem 30.5rem 3rem 8rem;
+}
+
+#Home-logo {
+	background-color: white;
+}
+
+#Home-title {
+	font-size: 5rem;
+	line-height: 5rem;
+	font-weight: 600;
+	width: 100%;
+	text-align: center;
+}
+
+#Home-subtitle {
+	font-weight: 500;
+	font-size: 2rem;
+	line-height: 2rem;
+	padding-top: 2rem;
+	width: 100%;
+	text-align: center;
+}

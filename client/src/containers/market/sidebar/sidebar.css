@@ -1,0 +1,61 @@
+#Side_bar {
+	color: #202930;
+	width: 27.5rem;
+	background-color: #ced0d2;
+	padding-left: 2rem;
+	padding-top: 1rem;
+}
+
+#Side_bar-title {
+	font-size: 3rem;
+	font-weight: 500;
+	line-height: 2rem;
+	padding-bottom: 4rem;
+}
+
+#Side_bar-subtitle {
+	font-size: 1.35rem;
+	padding-bottom: 1rem;
+}
+
+#Side_bar-x {
+	cursor: pointer;
+}
+
+#Side_bar-x-container {
+	width: 100%;
+	text-align: right;
+	padding-bottom: 1rem;
+}
+
+#Side_bar-info {
+	padding-bottom: 5rem;
+}
+
+.Side_bar-info-item {
+	padding-bottom: 1rem;
+}
+
+.Side_bar-info-title {
+	font-size: 1.1rem;
+	font-weight: 500;
+}
+
+.Side_bar-info-content {
+	font-size: 1.5rem;
+	font-weight: 600;
+}
+
+#Side_bar-exchange {
+	font-size: 1.15rem;
+	font-weight: 600;
+}
+
+#Side_bar-mini-buttons {
+	font-size: 0.5em;
+	margin-bottom: 1rem;
+}
+
+#Side_bar-form {
+	padding-bottom: 1rem;
+}

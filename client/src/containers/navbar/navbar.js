@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
-import { Menu, Sidebar, Responsive, Icon } from 'semantic-ui-react'
+import { Link } from 'react-router-dom'
+import { Menu, Responsive } from 'semantic-ui-react'
 import './navbar.css'
 import logo from '../../images/logo.svg'
 
@@ -18,9 +19,9 @@ class Navbar extends Component {
 
   render() {
     const { children } = this.props
-    const { activeItem, visible } = this.state
+    const { activeItem } = this.state
 
-    var title = "OasisX"
+    // var title = "OasisX"
     var other_buttons = []
     other_buttons.push(
       {
@@ -46,7 +47,6 @@ class Navbar extends Component {
 
         <Responsive minWidth={Responsive.onlyTablet.minWidth}>
           <Menu 
-            floated='left'
             secondary 
             vertical
             size='mini'
@@ -55,6 +55,8 @@ class Navbar extends Component {
             <Menu.Item
               name='Home'
               className='Navbar-item'
+              as={Link}
+              to={'/'}
             >
               <div className='Navbar-button' id='Navbar-logo'><img src={logo} alt='logo' className='Navbar-icon' /></div>
             </Menu.Item>
@@ -66,7 +68,8 @@ class Navbar extends Component {
                       active={activeItem === button.name}
                       className='Navbar-item'
                       onClick={this.handleToggle}
-                      href={button.href}
+                      as={Link}
+                      to={button.href}
                       key={idx}
                     >
                     <div className='Navbar-button'>{button.name}</div>

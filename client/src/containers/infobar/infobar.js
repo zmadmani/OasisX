@@ -1,6 +1,8 @@
 import React, { Component } from 'react'
-import { Header, Menu, Sidebar, Responsive, Icon, Table, Checkbox } from 'semantic-ui-react'
+import { Header, Table, Checkbox } from 'semantic-ui-react'
 import './infobar.css'
+
+import WrapStation from './wrapstation/wrapstation'
 
 class Infobar extends Component {
   constructor(props, context) {
@@ -57,7 +59,7 @@ class Infobar extends Component {
         if(val) {
           val = Math.round(this.props.drizzle.web3.utils.fromWei(val.toString(), 'ether') * 1000) / 1000
         } else {
-          val = "Loading..."
+          val = "Error..."
         }
         obj["balance"] = val
       }
@@ -73,8 +75,8 @@ class Infobar extends Component {
     return (
       <div id='Infobar'>
         <div className='Infobar-header'>{account}</div>
-        <Table basic='very' padded='very' striped>
-          <Table.Header>
+        <Table basic='very' padded='very' striped id="Infobar-table">
+          <Table.Header id="Infobar-table-header">
             <Table.Row>
               <Table.HeaderCell className='Infobar-table-entry' textAlign='left'>Token</Table.HeaderCell>
               <Table.HeaderCell className='Infobar-table-entry' textAlign='left'>Balance</Table.HeaderCell>
@@ -102,6 +104,8 @@ class Infobar extends Component {
             })}
           </Table.Body>
         </Table>
+
+        <WrapStation drizzle={this.props.drizzle} drizzleState={this.props.drizzleState} weth_key={keys["WETH"]} />
       </div>
     )
   }

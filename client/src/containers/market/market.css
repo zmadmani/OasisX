@@ -27,6 +27,10 @@
 	padding-bottom: 2rem;
 }
 
+#Market-activity-pane {
+	padding-bottom: 2rem;
+}
+
 #Market-orderlists {
 }
 
@@ -37,10 +41,36 @@
 	padding: 0.25rem;
 }
 
+.Market-tab-pane {
+	padding: 0 !important;
+	border: 0 !important;
+}
+
 .red {
 	color: red;
 }
 
 .green {
 	color: green;
+}
+
+.ui.tabular.menu {
+	border: 0px !important;
+}
+
+.ui.tabular.menu .item {
+	color: white;
+	background: #152128;
+}
+
+.ui.tabular.menu .item:hover {
+	color: white;
+	background: #111a21;
+}
+
+.ui.tabular.menu .active.item {
+	background: #0b1215;
+	color: white;
+	border: 0;
+	border-radius: 0 !important;
 }

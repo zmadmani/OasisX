@@ -7,10 +7,15 @@
 
 #OrderList-table {
 	width: 100%;
+	margin: 0;
 }
 
 .OrderList-table-entry {
 	color: #9aa3ad !important;
+}
+
+.OrderList-table-row {
+	cursor: pointer;
 }
 
 .OrderList-table-header {

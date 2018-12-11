@@ -1,0 +1,42 @@
+.WrapStation {
+	background-color: #111a21eb;
+	width: 100%;
+	margin-top: 3em;
+	height: 350px;
+	overflow-y: auto;
+}
+
+.WrapStation-loading {
+	color: #0b1216;
+	font-size: 2rem;
+	height: 100%;
+	width: 100%;
+	margin: auto 0;
+	text-align: center;
+	padding-top: 50%;
+}
+
+.WrapStation-headers {
+	font-size: 1.15rem;
+	font-weight: 600;
+	line-height: 2rem;
+	padding-top: 2rem;
+}
+
+.WrapStation-mini-buttons {
+	font-size: 0.5em;
+}
+
+#WrapStation-title {
+	font-weight: 600;
+	font-size: 1.6rem;
+	line-height: 1.1em;
+	width: 100%;
+	padding: 1rem;
+	background-color: #0b1216;
+}
+
+#WrapStation-form {
+	padding: 0 1rem;
+	background-color: #111a21eb;
+}
