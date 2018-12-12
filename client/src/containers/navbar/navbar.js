@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import { Menu, Responsive } from 'semantic-ui-react'
 import './navbar.css'
-import logo from '../../images/logo.svg'
+import logo from '../../images/x.svg'
 
 class Navbar extends Component {
   handleItemClick = (e, { name }) => this.setState({ activeItem: name })

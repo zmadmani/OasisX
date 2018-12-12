@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Router, Switch, Route } from 'react-router-dom'
+import { HashRouter, Switch, Route } from 'react-router-dom'
 import history from '../../history'
 
 import './App.css'
@@ -49,7 +49,7 @@ class App extends Component {
     else {
       return (
         <div className="App">
-          <Router history={history}>
+          <HashRouter history={history}>
             <div>
               <Navbar drizzle={drizzle} drizzleState={ drizzleState } />
               <div id="App_market_container">
@@ -61,7 +61,7 @@ class App extends Component {
                   </Switch>
               </div>
             </div>
-          </Router>
+          </HashRouter>
           <Infobar drizzle={drizzle} drizzleState={ drizzleState } />
         </div>
       );

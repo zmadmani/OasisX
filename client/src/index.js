@@ -11,11 +11,11 @@ import { Drizzle, generateStore } from 'drizzle'
 import Web3 from 'web3';
 const web3 = new Web3(Web3.givenProvider || "http://localhost:9545")
 
-const config = require("../config")
-const erc20Abi = require("../abi/standard-token/erc20")
-const WEthAbi = require("../abi/standard-token/ds-eth-token")
-const MatchingMarketAbi = require("../abi/maker-otc/matching-market");
-const SupportMethodsAbi = require("../abi/otc-support-methods/otc-support-methods")
+const config = require("./config")
+const erc20Abi = require("./abi/standard-token/erc20")
+const WEthAbi = require("./abi/standard-token/ds-eth-token")
+const MatchingMarketAbi = require("./abi/maker-otc/matching-market");
+const SupportMethodsAbi = require("./abi/otc-support-methods/otc-support-methods")
 
 const WETH = new web3.eth.Contract(WEthAbi.interface, config["tokens"]["main"]["W-ETH"])
 const DAI = new web3.eth.Contract(erc20Abi.interface, config["tokens"]["main"]["DAI"])
