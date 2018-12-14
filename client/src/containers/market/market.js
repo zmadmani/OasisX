@@ -125,7 +125,7 @@ class Market extends Component {
 
     const panes = [
       { menuItem: 'Open Orders', render: () => <Tab.Pane className="Market-tab-pane"><MyOrders currencies={currencies} drizzle={drizzle} drizzleState={drizzleState} offersKeys={[keys["buyOrdersKey"], keys["sellOrdersKey"]]} /></Tab.Pane> },
-      { menuItem: 'Order History', render: () => <Tab.Pane className="Market-tab-pane"><MyHistory currencies={currencies} drizzle={drizzle} drizzleState={drizzleState} /></Tab.Pane> },
+      { menuItem: 'My History', render: () => <Tab.Pane className="Market-tab-pane"><MyHistory currencies={currencies} drizzle={drizzle} drizzleState={drizzleState} /></Tab.Pane> },
       { menuItem: 'Market History', render: () => <Tab.Pane className="Market-tab-pane"><MarketHistory currencies={currencies} drizzle={drizzle} drizzleState={drizzleState} /></Tab.Pane> },
     ]
 
@@ -139,15 +139,15 @@ class Market extends Component {
         
         <div className="Market-headers">Activity Pane</div>
         <div id="Market-activity-pane">
-          <Tab panes={panes} />
+          <Tab menu={{ fluid: true, tabular: true, attached: 'top' }} panes={panes} />
         </div>
-        <Grid columns={2} divided id="Market-orderlists">
+        <Grid divided id="Market-orderlists">
           <Grid.Row>
-            <Grid.Column>
+            <Grid.Column className="Market-orderlist" computer={8} tablet={8} mobile={16}>
               <div className="Market-headers">{currencies[0]} <span className="green">Buy</span> Orders ({numBuys})</div>
               <OrderList currencies={currencies} type={"buy"} drizzle={drizzle} drizzleState={ drizzleState } offersKey={keys["buyOrdersKey"]} setSidebar={this.setSidebar} />
             </Grid.Column>
-            <Grid.Column>
+            <Grid.Column className="Market-orderlist" computer={8} tablet={8} mobile={16}>
               <div className="Market-headers">{currencies[0]} <span className="red">Sell</span> Orders ({numSells})</div>
               <OrderList currencies={currencies} type={"sell"} drizzle={drizzle} drizzleState={ drizzleState } offersKey={keys["sellOrdersKey"]} setSidebar={this.setSidebar} />
             </Grid.Column>

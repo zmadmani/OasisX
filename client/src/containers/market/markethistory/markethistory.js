@@ -134,7 +134,7 @@ class MarketHistory extends Component {
     const market = new web3.eth.Contract(Market.abi, Market.address)
     var events = await market.getPastEvents("LogTake", {
       filter: { pair: [hashKey1, hashKey2] },
-      fromBlock: latestBlock - 2500,
+      fromBlock: latestBlock - 2000,
       toBlock: 'latest'
     })
 
@@ -190,7 +190,7 @@ class MarketHistory extends Component {
 
     return (
       <div className="MarketHistory">
-        <Table selectable basic celled  id="MarketHistory-table">
+        <Table selectable striped basic celled unstackable id="MarketHistory-table">
           <Table.Header>
             <Table.Row>
               <Table.HeaderCell className='MarketHistory-table-header' textAlign='left'>Type</Table.HeaderCell>

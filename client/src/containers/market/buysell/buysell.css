@@ -13,3 +13,13 @@
 .BuySell-button {
 	margin-right: 1rem !important;
 }
+
+.BuySell-mini-buttons {
+	font-size: 0.5em;
+	width: 100%;
+	padding: 0rem 0rem 0.5rem 0rem;
+}
+
+.BuySell-amount-input {
+	padding: 0rem 0rem 0.5rem 0rem;
+}

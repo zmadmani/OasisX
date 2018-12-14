@@ -1,9 +1,8 @@
 .WrapStation {
 	background-color: #111a21eb;
 	width: 100%;
-	margin-top: 3em;
+	margin-top: 2em;
 	height: 350px;
-	overflow-y: auto;
 }
 
 .WrapStation-loading {
@@ -25,6 +24,7 @@
 
 .WrapStation-mini-buttons {
 	font-size: 0.5em;
+	width: 100%;
 }
 
 #WrapStation-title {
@@ -39,4 +39,29 @@
 #WrapStation-form {
 	padding: 0 1rem;
 	background-color: #111a21eb;
+}
+
+#WrapStation-warning {
+	font-size: 0.75rem;
+	padding-left: 1rem;
+}
+
+@media (max-width: 1024px) {
+
+}
+
+@media (max-width: 768px) {
+	.WrapStation-button {
+		width: 100% !important;
+		font-size: 0.1rem;
+	}
+
+	.WrapStation-formgroup {
+		padding-bottom: 1rem;
+	}
+
+	#WrapStation-warning {
+		font-size: 0.65rem;
+		padding-left: 1rem;
+	}
 }

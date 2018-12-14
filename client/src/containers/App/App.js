@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { HashRouter, Switch, Route } from 'react-router-dom'
-import history from '../../history'
+import { Responsive } from 'semantic-ui-react'
 
 import './App.css'
 
@@ -49,7 +49,7 @@ class App extends Component {
     else {
       return (
         <div className="App">
-          <HashRouter history={history}>
+          <HashRouter>
             <div>
               <Navbar drizzle={drizzle} drizzleState={ drizzleState } />
               <div id="App_market_container">
@@ -62,7 +62,9 @@ class App extends Component {
               </div>
             </div>
           </HashRouter>
-          <Infobar drizzle={drizzle} drizzleState={ drizzleState } />
+          <Responsive minWidth={Responsive.onlyTablet.minWidth}>
+            <Infobar drizzle={drizzle} drizzleState={ drizzleState } padded={true} />
+          </Responsive>
         </div>
       );
     }

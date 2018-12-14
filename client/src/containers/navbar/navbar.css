@@ -9,13 +9,36 @@
 	top: 0;
 }
 
-#Navbar-logo {
+#Navbar-mobile {
+	background-color: #0b1216;
+	height: 5rem;
+	padding: 0;
+	margin: 0;
+}
+
+.Navbar-button-mobile {
+	height: 100%;
+	color: white;
+	background-color: #152128;
+	display: flex;
+	align-items: center;
+}
+
+#Navbar-logo-mobile {
+	width: 5rem;
+}
+
+#Navbar-logo-container {
 	background-color: white;
 }
 
 .Navbar-item {
 	padding: 0 !important;
 	text-align: center;
+}
+
+.Navbar-dropdown {
+	color: white !important;
 }
 
 .Navbar-icon {
@@ -30,4 +53,8 @@
 	background-color: #152128;
 	display: flex;
 	align-items: center;
+}
+
+#Navbar-Side_info_bar {
+	width: calc(100% - 5rem);
 }

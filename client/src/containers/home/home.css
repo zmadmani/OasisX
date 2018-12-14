@@ -27,3 +27,13 @@
 	width: 100%;
 	text-align: center;
 }
+
+@media (max-width: 1024px) {
+
+}
+
+@media (max-width: 768px) {
+  #Home {
+  	padding: 10rem 1.5rem 0 1.5rem;
+  }
+}

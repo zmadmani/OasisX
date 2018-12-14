@@ -48,7 +48,6 @@ class MyHistory extends Component {
     }).on('data', function(event) {
       var orders = this.eventsToOrders([event])
       this.setState({ orders: orders.concat(this.state.orders) })
-      console.log(orders)
     }.bind(this))
 
     return subscription
@@ -196,7 +195,7 @@ class MyHistory extends Component {
 
     return (
       <div className="MarketHistory">
-        <Table selectable basic celled  id="MarketHistory-table">
+        <Table selectable striped basic celled unstackable id="MarketHistory-table">
           <Table.Header>
             <Table.Row>
               <Table.HeaderCell className='MarketHistory-table-header' textAlign='left'>Type</Table.HeaderCell>

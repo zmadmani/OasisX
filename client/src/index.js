@@ -10,6 +10,7 @@ import { Drizzle, generateStore } from 'drizzle'
 
 import Web3 from 'web3';
 const web3 = new Web3(Web3.givenProvider || "http://localhost:9545")
+// web3.currentProvider.enable()
 
 const config = require("./config")
 const erc20Abi = require("./abi/standard-token/erc20")
@@ -48,6 +49,10 @@ const options = {
 	],
 	events: {
 		Market: ['LogTake']
+	},
+	polls: {
+		accounts: 3000,
+		blocks: 3000
 	}
 }
 

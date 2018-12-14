@@ -72,7 +72,7 @@ class MyOrders extends Component {
 
     console.log("CANCEL ORDER " + id)
     const cancel = Market.methods.cancel
-    cancel.cacheSend(id, {from: account })
+    cancel.cacheSend(id, {from: account, gasPrice: this.props.drizzle.web3.utils.toWei('5', 'gwei') })
   }
 
   render() {
@@ -112,7 +112,7 @@ class MyOrders extends Component {
 
     return (
       <div className="MyOrders">
-        <Table selectable basic celled columns={4} id="MyOrders-table">
+        <Table selectable striped basic celled unstackable columns={4} id="MyOrders-table">
           <Table.Header>
             <Table.Row>
               <Table.HeaderCell className='MyOrders-table-header' textAlign='left'>Action</Table.HeaderCell>

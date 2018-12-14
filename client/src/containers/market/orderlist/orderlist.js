@@ -12,7 +12,9 @@ class OrderList extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    this.setState({ offersKey: nextProps.offersKey })
+    if(this.state.offersKey !== nextProps.offersKey) {
+      this.setState({ offersKey: nextProps.offersKey })
+    }
   }
 
   numberWithCommas(x) {
@@ -90,7 +92,7 @@ class OrderList extends Component {
 
     return (
       <div className="OrderList">
-        <Table selectable basic celled id="OrderList-table">
+        <Table selectable striped basic celled unstackable id="OrderList-table">
           <Table.Header>
             <Table.Row>
               <Table.HeaderCell className='OrderList-table-header' textAlign='left'>Price</Table.HeaderCell>

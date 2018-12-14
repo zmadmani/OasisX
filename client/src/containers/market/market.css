@@ -8,10 +8,10 @@
 }
 
 .Market-h1 {
-	font-size: 2.5rem;
+	font-size: 3rem;
 	line-height: 0.8;
 	letter-spacing: .1px;
-	font-weight: 300;
+	font-weight: 500;
 	margin: 0;
 }
 
@@ -61,6 +61,8 @@
 .ui.tabular.menu .item {
 	color: white;
 	background: #152128;
+	border-radius: 0 !important;
+	border: 0;
 }
 
 .ui.tabular.menu .item:hover {
@@ -73,4 +75,34 @@
 	color: white;
 	border: 0;
 	border-radius: 0 !important;
+}
+
+@media (max-width: 1024px) {
+
+}
+
+@media (max-width: 768px) {
+  .Market {
+  	padding: 6.5rem 1.5rem 0 1.5rem;
+  }
+
+  .Market-h1 {
+	font-size: 9vw;
+	line-height: 0.8;
+	letter-spacing: .1px;
+	font-weight: 500;
+	margin: 0;
+  }
+
+  .ui.tabular.menu .active.item {
+	width: 33%;
+  }
+
+  .ui.tabular.menu .item {
+  	width: 33%;
+  }
+
+  .Market-orderlist {
+ 	padding-bottom: 2rem;
+  }
 }

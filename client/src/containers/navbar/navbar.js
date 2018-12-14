@@ -1,8 +1,9 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
-import { Menu, Responsive } from 'semantic-ui-react'
+import { Menu, Responsive, Icon, Dropdown, Sidebar, Segment } from 'semantic-ui-react'
 import './navbar.css'
 import logo from '../../images/x.svg'
+import Infobar from '../infobar/infobar'
 
 class Navbar extends Component {
   handleItemClick = (e, { name }) => this.setState({ activeItem: name })
@@ -10,16 +11,21 @@ class Navbar extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      activeItem: ''
+      activeItem: '',
+      visible: false
     }
   }
 
   componentDidUpdate() {
   }
 
+  toggleVisible = () => {
+    this.setState({ visible: !this.state.visible })
+  }
+
   render() {
-    const { children } = this.props
-    const { activeItem } = this.state
+    const { children, drizzle, drizzleState } = this.props
+    const { activeItem, visible } = this.state
 
     // var title = "OasisX"
     var other_buttons = []
@@ -42,7 +48,49 @@ class Navbar extends Component {
     return (
       <div>
         <Responsive {...Responsive.onlyMobile}>
-
+          <Menu 
+            borderless
+            fixed='top'
+            id='Navbar-mobile'
+          >
+            <Menu.Item
+              name='Home'
+              active={activeItem === 'Home'}
+              href='/'
+              className='Navbar-item'
+            >
+              <div className='Navbar-button-mobile' id='Navbar-logo-container'><img src={logo} alt='logo' id='Navbar-logo-mobile' /></div>
+            </Menu.Item>
+            <Dropdown item text='Markets' className='Navbar-dropdown'>
+              <Dropdown.Menu>
+                {
+                  other_buttons.map((button, idx) => {
+                    return (
+                        <Dropdown.Item
+                          name={button.name}
+                          active={activeItem === button.name}
+                          className='Navbar-item'
+                          as={Link}
+                          to={button.href}
+                          key={idx}
+                        >
+                        {button.name}
+                      </Dropdown.Item>
+                    )
+                  })
+                }
+              </Dropdown.Menu>
+            </Dropdown>
+            <Menu.Menu position='right'>
+              <Menu.Item>
+                <Icon name='sidebar' inverted onClick={ this.toggleVisible } />
+              </Menu.Item>                
+            </Menu.Menu>
+          </Menu>
+          <Sidebar as={Segment} animation="overlay" direction="right" visible={visible} id="Navbar-Side_info_bar">
+            <Infobar drizzle={drizzle} drizzleState={ drizzleState } padded={false} closeSidebar={this.toggleVisible} />
+          </Sidebar>
+          { children }
         </Responsive>
 
         <Responsive minWidth={Responsive.onlyTablet.minWidth}>
@@ -58,7 +106,7 @@ class Navbar extends Component {
               as={Link}
               to={'/'}
             >
-              <div className='Navbar-button' id='Navbar-logo'><img src={logo} alt='logo' className='Navbar-icon' /></div>
+              <div className='Navbar-button' id='Navbar-logo-container'><img src={logo} alt='logo' className='Navbar-icon' /></div>
             </Menu.Item>
             {
               other_buttons.map((button, idx) => {
