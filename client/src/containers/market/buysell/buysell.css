@@ -23,3 +23,8 @@
 .BuySell-amount-input {
 	padding: 0rem 0rem 0.5rem 0rem;
 }
+
+.BuySell-color {
+	font-weight: 600;
+	font-size: 1.15rem;
+}

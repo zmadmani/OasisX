@@ -170,7 +170,6 @@ class MyHistory extends Component {
       return first.returnValues.timestamp - second.returnValues.timestamp
     })
 
-    console.log(events)
     var orders = this.eventsToOrders(events)
     return orders
   }

@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Input, Form, Button } from 'semantic-ui-react'
+import { Input, Form, Button, Loader } from 'semantic-ui-react'
 
 import './buysell.css'
 
@@ -8,6 +8,8 @@ class BuySell extends Component {
     super(props)
     this.state = {
       loading: false,
+      error: false,
+      success: false,
       price: '',
       amount_0: '',
       ui_amount_0: '',
@@ -20,6 +22,8 @@ class BuySell extends Component {
 
     this.handleSubmit = this.handleSubmit.bind(this)
     this.updateBalances = this.updateBalances.bind(this)
+    this.flashSuccess = this.flashSuccess.bind(this)
+    this.flashError = this.flashError.bind(this)
   }
 
   componentDidMount() {
@@ -50,7 +54,7 @@ class BuySell extends Component {
   // This is the most important function here.
   handleSubmit(type) {
     // Set loading to true to update UI
-    this.setState({loading: true})
+    this.setState({loading: true, error: false, success: false})
 
     var { currencies, drizzle, drizzleState } = this.props
     const web3 = drizzle.web3
@@ -83,10 +87,21 @@ class BuySell extends Component {
       return
     }
 
-    const offer = this.props.drizzle.contracts.Market.methods.offer
-    offer.cacheSend(data.pay_amt, data.pay_gem, data.buy_amt, data.buy_gem, 1, {from: account, gasPrice: web3.utils.toWei('5', 'gwei') })
+    this.props.drizzle.contracts.Market.methods.offer(data.pay_amt, data.pay_gem, data.buy_amt, data.buy_gem, 1).send({from: account, gasPrice: web3.utils.toWei('5', 'gwei') })
+      .on('receipt', this.flashSuccess)
+      .on('error', this.flashError)
 
-    this.setState({ loading: false, price: '', amount_0: '0', ui_amount_0: '', amount_1: '0', ui_amount_1: '' })
+    this.setState({ loading: true })
+  }
+
+  flashSuccess() {
+    this.setState({ success : true, loading: false })
+    setTimeout(() => this.setState({ success: false, price: '', amount_0: '0', ui_amount_0: '', amount_1: '0', ui_amount_1: '' }), 1500)
+  }
+
+  flashError() {
+    this.setState({ error: true, loading: false })
+    setTimeout(() => this.setState({ error: false }), 1500)
   }
 
   handlePriceChange(value) {
@@ -172,7 +187,7 @@ class BuySell extends Component {
   }
 
   render() {
-    var { price, amount_0, amount_1, ui_amount_0, ui_amount_1, currency_0_balance, currency_1_balance, bignumbers } = this.state
+    var { price, amount_0, amount_1, ui_amount_0, ui_amount_1, currency_0_balance, currency_1_balance, bignumbers, loading, success, error } = this.state
     var { currencies } = this.props
     const web3 = this.props.drizzle.web3
     
@@ -191,6 +206,17 @@ class BuySell extends Component {
     
     if(curr_1_balance.gte(amount_1_bn) && amount_1_bn.gt(web3.utils.toBN("0"))) {
       can_buy = true
+    }
+
+    var side_text = ""
+    if(loading) {
+      side_text = (<span className="BuySell-color"><Loader active inline size="small"/> LOADING...</span>)
+    }
+    if(error) {
+      side_text = (<span className="red BuySell-color">FAILED</span>)
+    }
+    if(success) {
+      side_text = (<span className="green BuySell-color">SUCCESS</span>)
     }
 
     return (
@@ -245,8 +271,9 @@ class BuySell extends Component {
               </Button.Group>
             </Form.Field>
           </Form.Group>
-          <Button className="BuySell-button" color='green' disabled={!can_buy} onClick={() => this.handleSubmit("BUY")} >BUY {currencies[0]}</Button>
-          <Button className="BuySell-button" color='red' disabled={!can_sell} onClick={() => this.handleSubmit("SELL")} >SELL {currencies[0]}</Button>
+          <Button className="BuySell-button" color='green' disabled={!can_buy || loading} onClick={() => this.handleSubmit("BUY")} >BUY {currencies[0]}</Button>
+          <Button className="BuySell-button" color='red' disabled={!can_sell || loading} onClick={() => this.handleSubmit("SELL")} >SELL {currencies[0]}</Button>
+          {side_text}
         </Form>
       </div>
     );
