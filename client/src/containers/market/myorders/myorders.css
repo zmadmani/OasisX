@@ -25,6 +25,10 @@
 	font-size: 1.2rem;
 }
 
+.MyOrders-color {
+	font-weight: 600;
+}
+
 #MyOrders-empty {
 	color: #9aa3ad !important;
 	opacity: 0.5;

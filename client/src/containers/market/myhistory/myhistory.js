@@ -9,7 +9,7 @@ class MyHistory extends Component {
     this.state = {
       loading: false,
       orders: [],
-      subscription: null
+      subscriptions: null
     }
   }
 
@@ -17,21 +17,23 @@ class MyHistory extends Component {
     this.setState({loading: true})
     var orders = await this.getPastOrders()
     this.setState({ orders, loading: false })
-    var subscription = await this.subscribeToEvents()
+    var subscriptions = await this.subscribeToEvents()
 
-    this.setState({ subscription })
+    this.setState({ subscriptions })
   }
 
   componentWillUnmount() {
-    if(this.state.subscription) {
-      this.state.subscription.unsubscribe()
+    if(this.state.subscriptions) {
+      this.state.subscriptions[0].unsubscribe()
+      this.state.subscriptions[1].unsubscribe()
     }
   }
 
   async subscribeToEvents() {
-    var { currencies, drizzle } = this.props
+    var { currencies, drizzle, drizzleState } = this.props
     var { Market } = drizzle.contracts
-    
+    let account = drizzleState.accounts[0]
+
     var web3 = drizzle.web3
     var latestBlock = await web3.eth.getBlockNumber()
     
@@ -42,15 +44,23 @@ class MyHistory extends Component {
     const hashKey2 = web3.utils.soliditySha3(curr_2_addr, curr_1_addr)
     
     const market = new web3.eth.Contract(Market.abi, Market.address)
-    var subscription = market.events.LogTake({
-      filter: { pair: [hashKey1, hashKey2] },
+    var taker_subscription = market.events.LogTake({
+      filter: { pair: [hashKey1, hashKey2], taker: account },
       fromBlock: latestBlock
     }).on('data', function(event) {
       var orders = this.eventsToOrders([event])
       this.setState({ orders: orders.concat(this.state.orders) })
     }.bind(this))
 
-    return subscription
+    var maker_subscription = market.events.LogTake({
+      filter: { pair: [hashKey1, hashKey2], maker: account },
+      fromBlock: latestBlock
+    }).on('data', function(event) {
+      var orders = this.eventsToOrders([event])
+      this.setState({ orders: orders.concat(this.state.orders) })
+    }.bind(this))
+
+    return [taker_subscription, maker_subscription]
   }
 
   numberWithCommas(x) {
@@ -68,13 +78,17 @@ class MyHistory extends Component {
     var buy_addr = order["buy_gem"]
     var pay_addr = order["pay_gem"]
 
+    var type = null
+
     if(buy_addr === curr_1_addr && pay_addr === curr_2_addr) {
-      return "SELL"
+      type = "SELL"
     } else if(buy_addr === curr_2_addr && pay_addr === curr_1_addr) {
-      return "BUY"
+      type = "BUY"
     } else {
       return null
     }
+
+    return type
   }
 
   getPrice(pay_amt, buy_amt, type) {
@@ -93,18 +107,27 @@ class MyHistory extends Component {
   }
 
   eventsToOrders(events) {
+    let account = this.props.drizzleState.accounts[0]
     var orders = []
     for(var i = 0; i < events.length; i++) {
       var order = events[i].returnValues
       var type = this.getType(order)
       var pay_amt = this.props.drizzle.web3.utils.fromWei(order["give_amt"].toString(), 'ether')
       var buy_amt = this.props.drizzle.web3.utils.fromWei(order["take_amt"].toString(), 'ether')
+      var true_type = type
+      if(order["maker"] === account) {
+        if(type === "BUY") {
+          true_type = "SELL"
+        } else {
+          true_type = "BUY"
+        }
+      }
       var offer = this.getPrice(pay_amt, buy_amt, type)
       var timestamp = new Date(order["timestamp"] * 1000)
       timestamp = timestamp.toLocaleTimeString() + " " + timestamp.toLocaleDateString()
       order = {
         "timestamp": timestamp,
-        "type": type,
+        "type": true_type,
         "price": offer[0],
         "curr_1": offer[1],
         "curr_2": offer[2],
@@ -147,6 +170,7 @@ class MyHistory extends Component {
       return first.returnValues.timestamp - second.returnValues.timestamp
     })
 
+    console.log(events)
     var orders = this.eventsToOrders(events)
     return orders
   }

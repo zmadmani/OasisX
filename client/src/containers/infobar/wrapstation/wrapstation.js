@@ -89,28 +89,12 @@ class WrapStation extends Component {
   }
 
   render() {
-    var { weth_key } = this.props
+    var { weth_balance, eth_balance } = this.props
     var { ui_amount_wrap, ui_amount_unwrap, bignumbers } = this.state
-    const account = this.props.drizzleState.accounts[0]
-    const weth_contract = this.props.drizzleState.contracts.WETH
-
-    // Initialize values at a string 0
-    var weth_amount = "0"
-    var eth_amount = "0"
-
-    // Check if values are available and retrieve if they are
-    if(weth_key in weth_contract.balanceOf) {
-      weth_amount = weth_contract.balanceOf[weth_key].value
-    }
-    eth_amount = this.props.drizzleState.accountBalances[account]
-
-    // Check if values arae null and change to string 0 if they are
-    weth_amount = weth_amount ? weth_amount : "0"
-    eth_amount = eth_amount ? eth_amount : "0"
 
     // Convert to BigNumbers since they will have potential math done on them (risk of overflow/underflow)
-    eth_amount = this.props.drizzle.web3.utils.toBN(eth_amount)
-    weth_amount = this.props.drizzle.web3.utils.toBN(weth_amount)
+    eth_balance = this.props.drizzle.web3.utils.toBN(eth_balance)
+    weth_balance = this.props.drizzle.web3.utils.toBN(weth_balance)
 
     return (
       <div className="WrapStation">
@@ -131,10 +115,10 @@ class WrapStation extends Component {
           </Form.Group>
           <Button.Group className="WrapStation-mini-buttons" size='mini' basic inverted>
             <Button onClick={ () => this.handleUserUpdate("ui_amount_wrap", "") } >0%</Button>
-            <Button onClick={ () => this.handlePercentUpdate("amount_wrap", eth_amount.div(bignumbers[4])) } >25%</Button>
-            <Button onClick={ () => this.handlePercentUpdate("amount_wrap", eth_amount.div(bignumbers[2])) } >50%</Button>
-            <Button onClick={ () => this.handlePercentUpdate("amount_wrap", eth_amount.mul(bignumbers[3]).div(bignumbers[4])) } >75%</Button>
-            <Button onClick={ () => this.handlePercentUpdate("amount_wrap", eth_amount.mul(bignumbers[9]).div(bignumbers[10])) } >90%</Button>
+            <Button onClick={ () => this.handlePercentUpdate("amount_wrap", eth_balance.div(bignumbers[4])) } >25%</Button>
+            <Button onClick={ () => this.handlePercentUpdate("amount_wrap", eth_balance.div(bignumbers[2])) } >50%</Button>
+            <Button onClick={ () => this.handlePercentUpdate("amount_wrap", eth_balance.mul(bignumbers[3]).div(bignumbers[4])) } >75%</Button>
+            <Button onClick={ () => this.handlePercentUpdate("amount_wrap", eth_balance.mul(bignumbers[9]).div(bignumbers[10])) } >90%</Button>
           </Button.Group>
           <div className="WrapStation-headers">Unwrap</div>
           <Form.Group unstackable className="WrapStation-formgroup">
@@ -151,10 +135,10 @@ class WrapStation extends Component {
           </Form.Group>
           <Button.Group className="WrapStation-mini-buttons" size='mini' basic inverted>
             <Button onClick={ () => this.handleUserUpdate("ui_amount_unwrap", "") } >0%</Button>
-            <Button onClick={ () => this.handlePercentUpdate("amount_unwrap", weth_amount.div(bignumbers[4])) } >25%</Button>
-            <Button onClick={ () => this.handlePercentUpdate("amount_unwrap", weth_amount.div(bignumbers[2])) } >50%</Button>
-            <Button onClick={ () => this.handlePercentUpdate("amount_unwrap", weth_amount.mul(bignumbers[3]).div(bignumbers[4])) } >75%</Button>
-            <Button onClick={ () => this.handlePercentUpdate("amount_unwrap", weth_amount) } >100%</Button>
+            <Button onClick={ () => this.handlePercentUpdate("amount_unwrap", weth_balance.div(bignumbers[4])) } >25%</Button>
+            <Button onClick={ () => this.handlePercentUpdate("amount_unwrap", weth_balance.div(bignumbers[2])) } >50%</Button>
+            <Button onClick={ () => this.handlePercentUpdate("amount_unwrap", weth_balance.mul(bignumbers[3]).div(bignumbers[4])) } >75%</Button>
+            <Button onClick={ () => this.handlePercentUpdate("amount_unwrap", weth_balance) } >100%</Button>
           </Button.Group>
         </Form>
       </div>

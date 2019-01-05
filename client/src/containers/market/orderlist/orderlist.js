@@ -7,57 +7,83 @@ class OrderList extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      offersKey: null
+      orders: null,
+      timeout: null
+    }
+
+    this.buildRow = this.buildRow.bind(this)
+    this.updateOrders = this.updateOrders.bind(this)
+  }
+
+  async componentDidMount() {
+    this.updateOrders()
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    if(nextState.orders !== this.state.orders) {
+      return true
+    } else {
+      return false
     }
   }
 
-  componentWillReceiveProps(nextProps) {
-    if(this.state.offersKey !== nextProps.offersKey) {
-      this.setState({ offersKey: nextProps.offersKey })
+  componentWillUnmount() {
+    if(this.state.timeout !== null) {
+      clearTimeout(this.state.timeout)
     }
   }
 
-  numberWithCommas(x) {
-      var parts = x.toString().split(".");
-      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-      return parts.join(".");
+  async updateOrders() {
+    var orders = await this.getOrders()
+    var timeout = setTimeout(this.updateOrders, 2500)
+    this.setState({ orders, timeout })
   }
 
-  render() {
-    var { offersKey } = this.state
-    var { currencies, type, setSidebar } = this.props
-    var { SupportMethods } = this.props.drizzleState.contracts
+  async getOrders() {
+    var { drizzle, currencies, type } = this.props
+    var market = drizzle.contracts.Market
 
-    var offersRaw = {
-      "ids": []
+    if(currencies.length === 2) {
+      var token_addr_0 = drizzle.contracts[currencies[0]].address
+      var token_addr_1 = drizzle.contracts[currencies[1]].address
+
+      var pay_token = null
+      var buy_token = null
+
+      if(type === "BUY") {
+        pay_token = token_addr_1
+        buy_token = token_addr_0
+      } else {
+        pay_token = token_addr_0
+        buy_token = token_addr_1
+      }
+
+      const rawOrders = await drizzle.contracts.SupportMethods.methods.getOffers(market.address, pay_token, buy_token).call()
+      var orders = []
+      if(rawOrders) {
+        orders = this.processOrders(rawOrders)
+      }
+      return orders
     }
+  }
 
-    if(offersKey in SupportMethods.getOffers) {
-      offersRaw = SupportMethods.getOffers[offersKey].value
-    }
+  processOrders(rawOrders) {
+    var { type } = this.props
 
-    if(!offersRaw) {
-      return (
-        <div className="OrderList">
-          <div className="OrderList-loading">Error...</div>
-        </div>
-      )
-    }
-
-    var n = offersRaw["ids"].length
-    var offers = []
+    var n = rawOrders["ids"].length
+    var orders = []
     for(var i = 0; i < n; i++) {
-      if(offersRaw["ids"][i] !== "0") {
-        var id = offersRaw["ids"][i]
-        var pay_amount = this.props.drizzle.web3.utils.fromWei(offersRaw["payAmts"][i].toString(), 'ether')
-        var buy_amount = this.props.drizzle.web3.utils.fromWei(offersRaw["buyAmts"][i].toString(), 'ether') 
+      if(rawOrders["ids"][i] !== "0") {
+        var id = rawOrders["ids"][i]
+        var pay_amount = this.props.drizzle.web3.utils.fromWei(rawOrders["payAmts"][i].toString(), 'ether')
+        var buy_amount = this.props.drizzle.web3.utils.fromWei(rawOrders["buyAmts"][i].toString(), 'ether') 
         var price = 0
-        var offer = {}
-        if(type === "buy") {
+        var order = {}
+        if(type === "BUY") {
           price = Math.round(pay_amount / buy_amount * 1000) / 1000
           buy_amount = Math.round(buy_amount * 1000) / 1000
           pay_amount = Math.round(pay_amount * 1000) / 1000
-          offer = {
+          order = {
             "price": price,
             "curr_0_amt": buy_amount,
             "curr_1_amt": pay_amount,
@@ -68,7 +94,7 @@ class OrderList extends Component {
           price = Math.round(buy_amount / pay_amount * 1000) / 1000
           buy_amount = Math.round(buy_amount * 1000) / 1000
           pay_amount = Math.round(pay_amount * 1000) / 1000
-          offer = {
+          order = {
             "price": price,
             "curr_0_amt": pay_amount,
             "curr_1_amt": buy_amount,
@@ -76,13 +102,50 @@ class OrderList extends Component {
             "type": type
           }
         }
-        offers.push(offer)
-      } else {
-        break
+        orders.push(order)
       }
     }
 
-    if(offers.length === 0) {
+    return orders
+  }
+
+  numberWithCommas(x) {
+      var parts = x.toString().split(".");
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      return parts.join(".");
+  }
+
+  buildRow(item, index) {
+    return (
+      <Table.Row key={item["id"]} onClick={() => this.props.setSidebar(item) } className="OrderList-table-row">
+        <Table.Cell>
+          <div className='OrderList-table-entry'>{this.numberWithCommas(item["price"])}</div>
+        </Table.Cell>
+
+        <Table.Cell>
+          <div className='OrderList-table-entry'>{this.numberWithCommas(item["curr_0_amt"])}</div>
+        </Table.Cell>
+
+        <Table.Cell  textAlign='left'>
+          <div className='OrderList-table-entry'>{this.numberWithCommas(item["curr_1_amt"])}</div>
+        </Table.Cell>
+      </Table.Row>
+    )
+  }
+
+  render() {
+    var { orders } = this.state
+    var { currencies } = this.props
+
+    if(!orders) {
+      return (
+        <div className="OrderList">
+          <div className="OrderList-loading">Error...</div>
+        </div>
+      )
+    }
+
+    if(orders.length === 0) {
       return (
         <div className="OrderList">
           <div className="OrderList-loading">Loading...</div>
@@ -102,23 +165,7 @@ class OrderList extends Component {
           </Table.Header>
 
           <Table.Body id="OrderList-tableBody">
-            {offers.map((item, index) => {
-              return (
-                <Table.Row key={item["id"]} onClick={() => setSidebar(item) } className="OrderList-table-row">
-                  <Table.Cell>
-                    <div className='OrderList-table-entry'>{this.numberWithCommas(item["price"])}</div>
-                  </Table.Cell>
-
-                  <Table.Cell>
-                    <div className='OrderList-table-entry'>{this.numberWithCommas(item["curr_0_amt"])}</div>
-                  </Table.Cell>
-
-                  <Table.Cell  textAlign='left'>
-                    <div className='OrderList-table-entry'>{this.numberWithCommas(item["curr_1_amt"])}</div>
-                  </Table.Cell>
-                </Table.Row>
-              )
-            })}
+            {orders.map(this.buildRow)}
           </Table.Body>
         </Table>
 

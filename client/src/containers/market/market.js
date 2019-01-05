@@ -26,11 +26,7 @@ class Market extends Component {
       },
       keys: {
         numBuys: null,
-        numSells: null,
-        bestBuyOffer: null,
-        bestSellOffer: null,
-        buyOrdersKey: null,
-        sellOrdersKey: null
+        numSells: null
       }
     }
   }
@@ -48,17 +44,11 @@ class Market extends Component {
     var sell_token_addr = drizzle.contracts[currencies[1]].address
 
     const numBuysKey = drizzle.contracts.Market.methods.getOfferCount.cacheCall(sell_token_addr, buy_token_addr)
-    const bestBuyOffer = drizzle.contracts.Market.methods.getBestOffer.cacheCall(sell_token_addr, buy_token_addr)
     const numSellsKey = drizzle.contracts.Market.methods.getOfferCount.cacheCall(buy_token_addr, sell_token_addr)
-    const bestSellOffer = drizzle.contracts.Market.methods.getBestOffer.cacheCall(buy_token_addr, sell_token_addr)
 
     let keys = Object.assign({}, this.state.keys)
     keys["numBuys"] = numBuysKey
     keys["numSells"] = numSellsKey
-    keys["bestBuyOffer"] = bestBuyOffer
-    keys["bestSellOffer"] = bestSellOffer
-    keys["buyOrdersKey"] = this.getOrdersKey("buy")
-    keys["sellOrdersKey"] = this.getOrdersKey("sell")
 
     this.setState({currencies, keys})
   }
@@ -69,31 +59,6 @@ class Market extends Component {
 
   toggleSidebar = () => {
     this.setState({ visible: !this.state.visible })
-  }
-
-  getOrdersKey(type) {
-    var { drizzle } = this.props
-    var { currencies } = this.state
-    var market = drizzle.contracts.Market
-
-    if(currencies.length === 2) {
-      var token_addr_0 = drizzle.contracts[currencies[0]].address
-      var token_addr_1 = drizzle.contracts[currencies[1]].address
-
-      var pay_token = null
-      var buy_token = null
-
-      if(type === "buy") {
-        pay_token = token_addr_1
-        buy_token = token_addr_0
-      } else {
-        pay_token = token_addr_0
-        buy_token = token_addr_1
-      }
-
-      const offersKey = drizzle.contracts.SupportMethods.methods.getOffers.cacheCall(market.address, pay_token, buy_token)
-      return offersKey
-    }
   }
 
   render() {
@@ -124,7 +89,7 @@ class Market extends Component {
     }
 
     const panes = [
-      { menuItem: 'Open Orders', render: () => <Tab.Pane className="Market-tab-pane"><MyOrders currencies={currencies} drizzle={drizzle} drizzleState={drizzleState} offersKeys={[keys["buyOrdersKey"], keys["sellOrdersKey"]]} /></Tab.Pane> },
+      { menuItem: 'Open Orders', render: () => <Tab.Pane className="Market-tab-pane"><MyOrders currencies={currencies} drizzle={drizzle} drizzleState={drizzleState} /></Tab.Pane> },
       { menuItem: 'My History', render: () => <Tab.Pane className="Market-tab-pane"><MyHistory currencies={currencies} drizzle={drizzle} drizzleState={drizzleState} /></Tab.Pane> },
       { menuItem: 'Market History', render: () => <Tab.Pane className="Market-tab-pane"><MarketHistory currencies={currencies} drizzle={drizzle} drizzleState={drizzleState} /></Tab.Pane> },
     ]
@@ -145,11 +110,11 @@ class Market extends Component {
           <Grid.Row>
             <Grid.Column className="Market-orderlist" computer={8} tablet={8} mobile={16}>
               <div className="Market-headers">{currencies[0]} <span className="green">Buy</span> Orders ({numBuys})</div>
-              <OrderList currencies={currencies} type={"buy"} drizzle={drizzle} drizzleState={ drizzleState } offersKey={keys["buyOrdersKey"]} setSidebar={this.setSidebar} />
+              <OrderList currencies={currencies} type={"BUY"} drizzle={drizzle} drizzleState={ drizzleState } setSidebar={this.setSidebar} />
             </Grid.Column>
             <Grid.Column className="Market-orderlist" computer={8} tablet={8} mobile={16}>
               <div className="Market-headers">{currencies[0]} <span className="red">Sell</span> Orders ({numSells})</div>
-              <OrderList currencies={currencies} type={"sell"} drizzle={drizzle} drizzleState={ drizzleState } offersKey={keys["sellOrdersKey"]} setSidebar={this.setSidebar} />
+              <OrderList currencies={currencies} type={"SELL"} drizzle={drizzle} drizzleState={ drizzleState } setSidebar={this.setSidebar} />
             </Grid.Column>
           </Grid.Row>
         </Grid>

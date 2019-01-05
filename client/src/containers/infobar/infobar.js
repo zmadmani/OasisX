@@ -7,59 +7,71 @@ import WrapStation from './wrapstation/wrapstation'
 class Infobar extends Component {
   constructor(props, context) {
     super(props)
-    var currencies = {
-      "WETH": {
-        balance: 0,
-        approved: false
-      },
-      "DAI": {
-        balance: 0,
-        approved: false
-      },
-      "MKR": {
-        balance: 0,
-        approved: false
-      }
-    }
     this.state = {
-      currencies: currencies,
-      account: null,
-      keys: {
-        "WETH": null,
-        "DAI": null,
-        "MKR": null
-      },
-      approval_keys: {
-        "WETH": null,
-        "DAI": null,
-        "MKR": null
+      currencies: {
+        "WETH": {
+          balance: 0,
+          approved: 0
+        },
+        "DAI": {
+          balance: 0,
+          approved: 0
+        },
+        "MKR": {
+          balance: 0,
+          approved: 0
+        },
+        "ETH": {
+          balance: 0,
+          approved: 0
+        }
       }
     }
+
+    this.updateInfo = this.updateInfo.bind(this)
   }
 
   componentDidMount() {
+    this.updateInfo()
+  }
+
+  async updateInfo() {
     const { drizzle, drizzleState } = this.props
     let account = drizzleState.accounts[0]
     let market_address = drizzle.contracts.Market.address
-    const wethDataKey = drizzle.contracts.WETH.methods.balanceOf.cacheCall(account)
-    const daiDataKey = drizzle.contracts.DAI.methods.balanceOf.cacheCall(account)
-    const mkrDataKey = drizzle.contracts.MKR.methods.balanceOf.cacheCall(account)
+    
+    const weth_balance = await drizzle.contracts.WETH.methods.balanceOf(account).call()
+    const dai_balance = await drizzle.contracts.DAI.methods.balanceOf(account).call()
+    const mkr_balance = await drizzle.contracts.MKR.methods.balanceOf(account).call()
+    
+    const weth_approval = await drizzle.contracts.WETH.methods.allowance(account, market_address).call()
+    const dai_approval = await drizzle.contracts.DAI.methods.allowance(account, market_address).call()
+    const mkr_approval = await drizzle.contracts.MKR.methods.allowance(account, market_address).call()
+    
+    var eth_balance = drizzleState.accountBalances[account]
 
-    let keys = Object.assign({}, this.state.keys)
-    keys["WETH"] = wethDataKey
-    keys["DAI"] = daiDataKey
-    keys["MKR"] = mkrDataKey
+    var currencies = {
+      "WETH": {
+        balance: weth_balance,
+        approved: weth_approval
+      },
+      "DAI": {
+        balance: dai_balance,
+        approved: dai_approval
+      },
+      "MKR": {
+        balance: mkr_balance,
+        approved: mkr_approval
+      },
+      "ETH": {
+        balance: eth_balance,
+        approved: "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+      }
+    }
 
-    const wethApprovalKey = drizzle.contracts.WETH.methods.allowance.cacheCall(account, market_address)
-    const daiApprovalKey = drizzle.contracts.DAI.methods.allowance.cacheCall(account, market_address)
-    const mkrApprovalKey = drizzle.contracts.MKR.methods.allowance.cacheCall(account, market_address)
+    this.setState({ currencies })
 
-    let approval_keys = Object.assign({}, this.state.approval_keys)
-    approval_keys["WETH"] = wethApprovalKey
-    approval_keys["DAI"] = daiApprovalKey
-    approval_keys["MKR"] = mkrApprovalKey
-
-    this.setState({ keys, approval_keys, account: account })
+    setTimeout(this.updateInfo, 2500)
   }
 
   approveCurrencyForAmount(currency, amount) {
@@ -93,51 +105,46 @@ class Infobar extends Component {
     }
   }
 
-  render() {
-    const { currencies, keys, approval_keys, account } = this.state
-    const { padded, closeSidebar } = this.props
+  getUIBalance(raw_balance) {
+    let UI_balance = raw_balance
+    if(raw_balance != null) {
+      UI_balance = Math.round(this.props.drizzle.web3.utils.fromWei(raw_balance.toString(), 'ether') * 1000) / 1000
+    } else {
+      UI_balance = "Error..."
+    }
+    return UI_balance    
+  }
+
+  getUIAllowance(raw_balance, raw_allowance) {
     const web3 = this.props.drizzle.web3
-    const contracts = this.props.drizzleState.contracts
-    let eth_balance = this.props.drizzleState.accountBalances[account]
+    let UI_allowance = false
+    raw_allowance = web3.utils.toBN(raw_allowance)
+    let balance = web3.utils.toBN(raw_balance)
+    if(raw_allowance.gte(balance)) {
+      UI_allowance = true
+    } else {
+      UI_allowance = false
+    }
+    return UI_allowance
+  }
+
+  render() {
+    const { currencies } = this.state
+    const { padded, closeSidebar, drizzle, drizzleState } = this.props
+    let account = drizzleState.accounts[0]
 
     const vals = Object.keys(currencies).map((key) => {
-      var obj = currencies[key]
+      var obj = {}
       obj["name"] = key
-      var raw_balance = "0"
-      var raw_allowance = "0"
-      if(keys[key] in contracts[key].balanceOf) {
-        raw_balance = contracts[key].balanceOf[keys[key]].value
-        let UI_balance = raw_balance
-        if(raw_balance != null && raw_allowance != null) {
-          UI_balance = Math.round(this.props.drizzle.web3.utils.fromWei(raw_balance.toString(), 'ether') * 1000) / 1000
-        } else {
-          UI_balance = "Error..."
-        }
-        obj["balance"] = UI_balance
+      obj["balance"] = "0"
+      obj["approved"] = false
+      var raw_balance = currencies[key]["balance"]
+      var raw_allowance = currencies[key]["approved"]
+      if(raw_balance && raw_allowance) {
+        obj["balance"] = this.getUIBalance(raw_balance)
+        obj["approved"] = this.getUIAllowance(raw_balance, raw_allowance)      
       }
-
-      if(approval_keys[key] in contracts[key].allowance) {
-        raw_allowance = contracts[key].allowance[approval_keys[key]].value
-        var UI_allowance = false
-        if(raw_allowance != null && raw_balance != null) {
-          raw_allowance = web3.utils.toBN(raw_allowance)
-          let balance = web3.utils.toBN(raw_balance)
-          if(raw_allowance.gte(balance)) {
-            UI_allowance = true
-          } else {
-            UI_allowance = false
-          }
-        }
-        obj["approved"] = UI_allowance
-      }
-
       return obj
-    })
-
-    vals.push({
-      "balance": eth_balance ? Math.round(this.props.drizzle.web3.utils.fromWei(eth_balance.toString(), 'ether') * 1000) / 1000 : "Error...",
-      "approved": true,
-      "name": "ETH"
     })
 
     var padding = null
@@ -185,7 +192,7 @@ class Infobar extends Component {
           </Table.Body>
         </Table>
 
-        <WrapStation drizzle={this.props.drizzle} drizzleState={this.props.drizzleState} weth_key={keys["WETH"]} />
+        <WrapStation drizzle={drizzle} drizzleState={drizzleState} weth_balance={currencies["WETH"]["balance"]} eth_balance={currencies["ETH"]["balance"]} />
       </div>
     )
   }

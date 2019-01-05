@@ -13,23 +13,27 @@ class BuySell extends Component {
       ui_amount_0: '',
       amount_1: '',
       ui_amount_1: '',
-      currency_0_key: null,
-      currency_1_key: null,
+      currency_0_balance: "0",
+      currency_1_balance: "0",
       bignumbers: []
     }
 
     this.handleSubmit = this.handleSubmit.bind(this)
+    this.updateBalances = this.updateBalances.bind(this)
   }
 
   componentDidMount() {
-    var { drizzle, drizzleState, currencies } = this.props
-
-    // Get the cacheCall keys for the 2 balances we need from currency 0 and currency 1
-    const account = drizzleState.accounts[0]
-    const currency_0_key = drizzle.contracts[currencies[0]].methods.balanceOf.cacheCall(account)
-    const currency_1_key = drizzle.contracts[currencies[1]].methods.balanceOf.cacheCall(account)
     this.generateBigNumbers()
-    this.setState({ currency_0_key, currency_1_key })
+    this.updateBalances()
+  }
+
+  async updateBalances() {
+    var { drizzle, drizzleState, currencies } = this.props
+    const account = drizzleState.accounts[0]
+    const currency_0_balance = await drizzle.contracts[currencies[0]].methods.balanceOf(account).call()
+    const currency_1_balance = await drizzle.contracts[currencies[1]].methods.balanceOf(account).call()
+    this.setState({ currency_0_balance, currency_1_balance })
+    setTimeout(this.updateBalances, 2500)
   }
 
   generateBigNumbers() {
@@ -167,33 +171,17 @@ class BuySell extends Component {
     })
   }
 
-  // Helper function to get the cacheKeys from drizzlestate if they exist. else return a 0 BN
-  // Also handles the case where sometimes metamask returns a null response. Treats that as a nonexistant key and returns 0 BN
-  // Note: ONLY MEANT FOR INTEGER RETURN VALUES
-  getItem(contract, func, key) {
-    const web3 = this.props.drizzle.web3
-    var ret = "0"
-
-    // Check if the cacheKey is in the store
-    if(key in contract[func]) {
-      ret = contract[func][key].value ? contract[func][key].value : "0"
-    }
-
-    return web3.utils.toBN(ret)
-  }
-
   render() {
-    var { price, amount_0, amount_1, ui_amount_0, ui_amount_1, currency_0_key, currency_1_key, bignumbers } = this.state
+    var { price, amount_0, amount_1, ui_amount_0, ui_amount_1, currency_0_balance, currency_1_balance, bignumbers } = this.state
     var { currencies } = this.props
-    const contracts = this.props.drizzleState.contracts
     const web3 = this.props.drizzle.web3
     
     var can_buy = false
     var can_sell = false
     
-    var curr_0_balance = this.getItem(contracts[currencies[0]], "balanceOf", currency_0_key)
-    var curr_1_balance = this.getItem(contracts[currencies[1]], "balanceOf", currency_1_key)
-
+    var curr_0_balance = web3.utils.toBN(currency_0_balance)
+    var curr_1_balance = web3.utils.toBN(currency_1_balance)
+    
     var amount_0_bn = web3.utils.toBN(amount_0)
     var amount_1_bn = web3.utils.toBN(amount_1)
 

@@ -53,7 +53,8 @@ const options = {
 	polls: {
 		accounts: 3000,
 		blocks: 3000
-	}
+	},
+	syncAlways: false
 }
 
 const drizzleStore = generateStore(options)
