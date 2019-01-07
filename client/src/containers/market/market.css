@@ -27,11 +27,16 @@
 	padding-bottom: 2rem;
 }
 
+#Market-stats {
+	padding-bottom: 2rem;
+}
+
 #Market-activity-pane {
 	padding-bottom: 2rem;
 }
 
 #Market-orderlists {
+	padding-bottom: 2rem;
 }
 
 .Market-headers {
@@ -60,7 +65,7 @@
 
 .ui.tabular.menu .item {
 	color: white;
-	background: #152128;
+	background: #202930;
 	border-radius: 0 !important;
 	border: 0;
 }

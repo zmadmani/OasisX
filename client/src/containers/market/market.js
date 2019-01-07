@@ -5,6 +5,7 @@ import { Grid, Tab } from 'semantic-ui-react'
 import OrderList from './orderlist/orderlist'
 import BuySell from './buysell/buysell'
 import MyOrders from './myorders/myorders'
+import Stats from './stats/stats'
 import MarketHistory from './markethistory/markethistory'
 import MyHistory from './myhistory/myhistory'
 import SideBar from './sidebar/sidebar'
@@ -99,13 +100,17 @@ class Market extends Component {
         <SideBar currencies={currencies} toggleSidebar={this.toggleSidebar} sidebar_info={sidebar_info} visible={visible} drizzle={drizzle} drizzleState={ drizzleState } />
         <div id="Market-title"><span className="Market-h1">{title}</span></div>
 
-        <div className="Market-headers">Make Order</div>
-        <div id="Market-buysell"><BuySell currencies={currencies} drizzle={drizzle} drizzleState={ drizzleState } /></div>
-        
+        <div className="Market-headers">24-Hour Market Stats</div>
+        <div id="Market-stats"><Stats currencies={currencies} drizzle={drizzle} drizzleState={ drizzleState } /></div>
+ 
         <div className="Market-headers">Activity Pane</div>
         <div id="Market-activity-pane">
           <Tab menu={{ fluid: true, tabular: true, attached: 'top' }} panes={panes} />
         </div>
+
+        <div className="Market-headers">Make Order</div>
+        <div id="Market-buysell"><BuySell currencies={currencies} drizzle={drizzle} drizzleState={ drizzleState } /></div>
+        
         <Grid divided id="Market-orderlists">
           <Grid.Row>
             <Grid.Column className="Market-orderlist" computer={8} tablet={8} mobile={16}>
@@ -118,6 +123,7 @@ class Market extends Component {
             </Grid.Column>
           </Grid.Row>
         </Grid>
+      
       </div>
     );
   }

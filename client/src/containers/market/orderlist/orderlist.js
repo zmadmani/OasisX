@@ -8,7 +8,8 @@ class OrderList extends Component {
     super(props)
     this.state = {
       orders: null,
-      timeout: null
+      timeout: null,
+      max_order: null
     }
 
     this.buildRow = this.buildRow.bind(this)
@@ -35,8 +36,9 @@ class OrderList extends Component {
 
   async updateOrders() {
     var orders = await this.getOrders()
-    var timeout = setTimeout(this.updateOrders, 2500)
-    this.setState({ orders, timeout })
+    var max_order = Math.max.apply(Math, orders.map(function(o) { return o.curr_1_amt; }))
+    var timeout = setTimeout(this.updateOrders, 5000)
+    this.setState({ orders, timeout, max_order })
   }
 
   async getOrders() {
@@ -116,8 +118,24 @@ class OrderList extends Component {
   }
 
   buildRow(item, index) {
+    var { max_order } = this.state
+    var { type } = this.props
+
+    var ratio = item["curr_1_amt"]/max_order * 100
+    var direction = "right"
+    var color_0 = "rgba(255, 0, 0, 0.2)"
+    var color_1 = "rgba(0,0,0,0)"
+    if(type === "BUY") {
+      color_0 = "rgba(0, 255, 0, 0.1)"
+      color_1 = "rgba(0, 0, 0, 0)"
+    }
+    var style = { backgroundImage: `linear-gradient(to ${direction}, ${color_0} , ${color_0}), linear-gradient(to ${direction}, ${color_1}, ${color_1})` ,
+      backgroundSize: `calc(${ratio}%) 100%`,
+      backgroundRepeat: `no-repeat`
+    }
+
     return (
-      <Table.Row key={item["id"]} onClick={() => this.props.setSidebar(item) } className="OrderList-table-row">
+      <Table.Row key={item["id"]} onClick={() => this.props.setSidebar(item) } className="OrderList-table-row" style={style}>
         <Table.Cell>
           <div className='OrderList-table-entry'>{this.numberWithCommas(item["price"])}</div>
         </Table.Cell>
@@ -155,7 +173,7 @@ class OrderList extends Component {
 
     return (
       <div className="OrderList">
-        <Table selectable striped basic celled unstackable id="OrderList-table">
+        <Table striped basic celled unstackable id="OrderList-table">
           <Table.Header>
             <Table.Row>
               <Table.HeaderCell className='OrderList-table-header' textAlign='left'>Price</Table.HeaderCell>
