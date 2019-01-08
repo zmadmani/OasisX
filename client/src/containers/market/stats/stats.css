@@ -39,8 +39,23 @@
 	padding-top: 25px;
 }
 
+#Stats-statistics {
+	/*padding: 1rem;*/
+	width: 100%;
+}
+
 .Stats-statistic {
-	padding-bottom: 0.5rem;
+	padding: 0.5rem 0rem;
+}
+
+.Stats-header {
+	font-size: 1.2rem;
+	font-weight: 600;
+}
+
+.Stats-content {
+	font-size: 1.15rem;
+	font-weight: 500;
 }
 
 .Stats-statistic > .value {
@@ -56,14 +71,21 @@
 }
 
 .sub_value {
-	font-size: 1.5rem;
+	font-size: 0.75rem;
 }
 
 .loading_value {
-	font-size: 3rem;
+	font-size: 0.75rem;
 	padding-bottom: 1rem;
 }
 
 #Stats-chart {
-	padding-top: 2rem;
+}
+
+.Stats-content > .important-red {
+	color: red !important;
+}
+
+.Stats-content > .important-green {
+	color: green !important;
 }

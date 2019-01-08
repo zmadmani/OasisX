@@ -35,7 +35,7 @@ class SideBar extends Component {
 
   async updateInfo() {
     var { drizzle, drizzleState, currencies } = this.props
-    if(this.state.visible) {
+    if(this.state.visible && this.state.id) {
       let account = drizzleState.accounts[0]
 
       const currency_0_balance = await drizzle.contracts[currencies[0]].methods.balanceOf(account).call()
@@ -43,7 +43,7 @@ class SideBar extends Component {
       const info = await drizzle.contracts.Market.methods.getOffer(this.state.id).call()
       this.setState({ currency_0_balance, currency_1_balance, info })
     }
-    setTimeout(this.updateInfo, 2500)
+    setTimeout(this.updateInfo, 1000)
   }
 
   generateBigNumbers() {
@@ -94,19 +94,38 @@ class SideBar extends Component {
     const account = drizzleState.accounts[0]
     const web3 = drizzle.web3
 
-    var amount = this.state.amount
-    var will_receive = amount === "" ? "0" : amount
+    var amount = this.state.amount === "" ? "0" : this.state.amount.toString()
+    var will_receive = amount
     will_receive = web3.utils.fromWei(will_receive, 'ether')
     if(sidebar_info["type"] === "SELL") {
       will_receive /= sidebar_info["price"]
+      will_receive = web3.utils.toWei(will_receive.toString(), 'ether')
+      if(web3.utils.toBN(will_receive).gt(web3.utils.toBN(this.state.info[0]))) {
+        will_receive = this.state.info[0]
+      }
+      if(web3.utils.toBN(amount).gte(web3.utils.toBN(this.state.currency_1_balance))) {
+        let balance_bn = web3.utils.toBN(this.state.currency_1_balance)
+        let offer_curr_1_bn = web3.utils.toBN(this.state.info[2])
+        let offer_curr_0_bn = web3.utils.toBN(this.state.info[0])
+        will_receive = balance_bn.mul(offer_curr_0_bn).div(offer_curr_1_bn)
+      }
     } else {
       will_receive *= sidebar_info["price"]
+      will_receive = web3.utils.toWei(will_receive.toString(), 'ether')
+      if(web3.utils.toBN(will_receive).gt(web3.utils.toBN(this.state.info[2]))) {
+        will_receive = this.state.info[2]
+      }
+      if(web3.utils.toBN(amount).gte(web3.utils.toBN(this.state.currency_0_balance))) {
+        let balance_bn = web3.utils.toBN(this.state.currency_0_balance)
+        let offer_curr_1_bn = web3.utils.toBN(this.state.info[0])
+        let offer_curr_0_bn = web3.utils.toBN(this.state.info[2])
+        will_receive = balance_bn.mul(offer_curr_1_bn).div(offer_curr_0_bn)
+      }
     }
-    will_receive = web3.utils.toWei(will_receive.toString(), 'ether')
 
     var id = sidebar_info["id"]
 
-    drizzle.contracts.Market.methods.buy(id, will_receive).send({from: account, gasPrice: web3.utils.toWei('5', 'gwei') })
+    drizzle.contracts.Market.methods.buy(id, will_receive.toString()).send({from: account, gasPrice: web3.utils.toWei('5', 'gwei') })
       .on('receipt', this.flashSuccess)
       .on('error', this.flashError)
 
@@ -125,7 +144,7 @@ class SideBar extends Component {
     var internal_value = 0
     try{
       if(/\S/.test(value)) {
-        internal_value = this.props.drizzle.web3.utils.toWei(value.toString(), 'ether')
+        internal_value = this.props.drizzle.web3.utils.toWei(value.toString(), 'ether').toString()
       }
     } catch (err) {
       console.log(err)
@@ -136,7 +155,7 @@ class SideBar extends Component {
 
   handleAmountPercentageChange(value) {
     var ui_value = this.props.drizzle.web3.utils.fromWei(value.toString(), 'ether')
-    this.setState({ amount: value, ui_amount: ui_value })
+    this.setState({ amount: value.toString(), ui_amount: ui_value })
   }
 
   // So we were passed in the most up to date info the older component had.
@@ -145,7 +164,6 @@ class SideBar extends Component {
   getUpdatedInfo() {
     var { info } = this.state
     var { sidebar_info } = this.props
-    const web3 = this.props.drizzle.web3
 
     var info_obj = {}
     if(!info) {
@@ -157,14 +175,14 @@ class SideBar extends Component {
     if(sidebar_info["type"] === "BUY") {
       info_obj = {
         "price": sidebar_info["price"],
-        "curr_0_amt": web3.utils.toBN(pay_amt),
-        "curr_1_amt": web3.utils.toBN(buy_amt)
+        "curr_0_amt": pay_amt.toString(),
+        "curr_1_amt": buy_amt.toString()
       }
     } else {
       info_obj = {
         "price": sidebar_info["price"],
-        "curr_0_amt": web3.utils.toBN(buy_amt),
-        "curr_1_amt": web3.utils.toBN(pay_amt)
+        "curr_0_amt": buy_amt.toString(),
+        "curr_1_amt": pay_amt.toString()
       }
     }
 
@@ -213,16 +231,16 @@ class SideBar extends Component {
       giving["currency"] = currencies[1]
       giving["receive_currency"] = currencies[0]
       giving["balance"] = web3.utils.toBN(currency_1_balance)
-      giving["ui_balance"] = Math.round(web3.utils.fromWei(currency_1_balance, 'ether') * 1000) / 1000
-      giving["offered"] = updated_info["curr_1_amt"]
+      giving["ui_balance"] = Math.round(web3.utils.fromWei(currency_1_balance.toString(), 'ether') * 1000) / 1000
+      giving["offered"] = web3.utils.toBN(updated_info["curr_1_amt"])
       giving["ui_offered"] = Math.round(web3.utils.fromWei(updated_info["curr_1_amt"], 'ether') * 1000) / 1000
       giving["will_receive"] = Math.round((will_receive / updated_info["price"]) * 1000) / 1000
     } else {
       giving["currency"] = currencies[0]
       giving["receive_currency"] = currencies[1]
       giving["balance"] = web3.utils.toBN(currency_0_balance)
-      giving["ui_balance"] = Math.round(web3.utils.fromWei(currency_0_balance, 'ether') * 1000) / 1000
-      giving["offered"] = updated_info["curr_0_amt"]
+      giving["ui_balance"] = Math.round(web3.utils.fromWei(currency_0_balance.toString(), 'ether') * 1000) / 1000
+      giving["offered"] = web3.utils.toBN(updated_info["curr_0_amt"])
       giving["ui_offered"] = Math.round(web3.utils.fromWei(updated_info["curr_0_amt"], 'ether') * 1000) / 1000
       giving["will_receive"] = Math.round((will_receive * updated_info["price"]) * 1000) / 1000
     }

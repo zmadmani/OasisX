@@ -130,9 +130,9 @@ class Chart extends Component {
             minTime={start_time} 
             maxTime={end_time} 
             timeAxisAngledLabels={true}
-            timeAxisHeight={65}
-            paddingLeft={25}
-            paddingRight={25}
+            timeAxisHeight={80}
+            paddingLeft={20}
+            paddingRight={20}
             enablePanZoom={true}
             minDuration={1000 * 60 * 60}
             onTrackerChanged={this.handleTrackerChange}
@@ -140,6 +140,13 @@ class Chart extends Component {
             onTimeRangeChanged={this.handleTimeRangeChange}
             onMouseMove={(x, y) => this.handleMouseMove(x, y) }
             showGrid
+            style={{
+                background: "#0b1215",
+                borderStyle: "solid",
+                borderWidth: 1,
+                borderColor: "#0b1215",
+                paddingTop: "1em"
+            }}
             timeAxisStyle={{
                               ticks: {
                                   stroke: "#AAA",

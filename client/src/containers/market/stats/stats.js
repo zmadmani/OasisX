@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Statistic, Grid, Icon } from 'semantic-ui-react'
+import { Grid, List } from 'semantic-ui-react'
 import Chart from './chart/chart'
 
 import './stats.css'
@@ -15,7 +15,8 @@ class Stats extends Component {
         num_buys: "...",
         num_sells: "...",
         buy_volume: "...",
-        sell_volume: "..."
+        sell_volume: "...",
+        last_price: "..."
       },
       subsciption: null
     }
@@ -50,7 +51,8 @@ class Stats extends Component {
       old_stats["num_buys"] !== new_stats["num_buys"] ||
       old_stats["num_sells"] !== new_stats["num_sells"] ||
       old_stats["buy_volume"] !== new_stats["buy_volume"] ||
-      old_stats["sell_volume"] !== new_stats["sell_volume"] ) {
+      old_stats["sell_volume"] !== new_stats["sell_volume"] ||
+      old_stats["last_price"] !== new_stats["last_price"] ) {
       return true
     } else {
       return false
@@ -63,7 +65,8 @@ class Stats extends Component {
       num_buys: 0,
       num_sells: 0,
       buy_volume: 0,
-      sell_volume: 0
+      sell_volume: 0,
+      last_price: 0
     }
 
     var users = {}
@@ -93,6 +96,7 @@ class Stats extends Component {
       }
     }
 
+    new_stats["last_price"] = Math.round(orders[0]["price"] * 100) / 100
     new_stats["buy_volume"] = Math.round(new_stats["buy_volume"] * 100) / 100
     new_stats["sell_volume"] = Math.round(new_stats["sell_volume"] * 100) / 100
 
@@ -222,9 +226,16 @@ class Stats extends Component {
     if(this.state.stats[key] === "...") {
       return <span className="loading_value">{this.state.stats[key]}</span>
     }
+    var color = null
     var value = this.numberWithCommas(this.state.stats[key])
     if(key === "buy_volume" || key === "sell_volume") {
-      value = <span className="value">{value.toString()} <span className="sub_value">{this.props.currencies[1]}</span></span>
+      color = key === "buy_volume" ? "important-green" : "important-red"
+      value = <span className={color + " value"}>{value.toString()} <span className="sub_value">{this.props.currencies[1]}</span></span>
+    }
+
+    if(key === "num_buys" || key === "num_sells") {
+      color = key === "num_buys" ? "important-green" : "important-red"
+      value = <span className={color + " value"}>{value.toString()}</span>
     }
     return value
   }
@@ -233,7 +244,7 @@ class Stats extends Component {
     var { orders } = this.state
     var { currencies } = this.props
 
-    var keys = ["num_users", "num_buys", "num_sells", "buy_volume", "sell_volume"]
+    var keys = ["num_users", "num_buys", "num_sells", "buy_volume", "sell_volume", "last_price"]
     var statistics = {}
     for(var i = 0; i < keys.length; i++) {
       var key = keys[i]
@@ -245,27 +256,60 @@ class Stats extends Component {
     return (
       <div className="Stats">
         {chart}
-        <Grid id="Stats-grid">
-          <Grid.Row>
-            <Grid.Column mobile={16} tablet={5} computer={5} textAlign="center">
-              <Statistic className="Stats-statistic" label={<span className="label"><Icon name='user' />Num Users</span>} value={statistics["num_users"]} inverted />
-            </Grid.Column>
-            <Grid.Column mobile={8} tablet={5} computer={5} textAlign="center">
-              <Statistic className="Stats-statistic" label={<span className="label"><Icon name='angle up' />Num Buys</span>} value={statistics["num_buys"]} inverted />
-            </Grid.Column>
-            <Grid.Column mobile={8} tablet={5} computer={5} textAlign="center">
-              <Statistic className="Stats-statistic" label={<span className="label"><Icon name='angle down' />Num Sells</span>} value={statistics["num_sells"]} inverted />
-            </Grid.Column>
-          </Grid.Row>
-          <Grid.Row>
-            <Grid.Column mobile={16} tablet={8} computer={8} textAlign="center">
-              <Statistic className="Stats-statistic" label={"Buy Volume"} value={statistics["buy_volume"]} inverted size="tiny" />
-            </Grid.Column>
-            <Grid.Column mobile={16} tablet={8} computer={8} textAlign="center">
-              <Statistic className="Stats-statistic" label={"Sell Volume"} value={statistics["sell_volume"]} inverted size="tiny" />
-            </Grid.Column>
-          </Grid.Row>
-        </Grid>
+        <div id="Stats-statistics">
+          <Grid id="Stats-grid">
+            <Grid.Row>
+              <Grid.Column mobile={8} tablet={4} computer={4} textAlign="center">
+                <List.Item className="Stats-statistic">
+                  <List.Content>
+                    <List.Header className="Stats-header"># Buys</List.Header>
+                    <List.Description className="Stats-content">{statistics["num_buys"]}</List.Description>
+                  </List.Content>
+                </List.Item>
+              </Grid.Column>
+              <Grid.Column mobile={8} tablet={4} computer={4} textAlign="center">
+                <List.Item className="Stats-statistic">
+                  <List.Content>
+                    <List.Header className="Stats-header">Buy Vol.</List.Header>
+                    <List.Description className="Stats-content">{statistics["buy_volume"]}</List.Description>
+                  </List.Content>
+                </List.Item>
+              </Grid.Column>
+              <Grid.Column mobile={8} tablet={4} computer={4} textAlign="center">
+                <List.Item className="Stats-statistic">
+                  <List.Content>
+                    <List.Header className="Stats-header"># Sells</List.Header>
+                    <List.Description className="Stats-content">{statistics["num_sells"]}</List.Description>
+                  </List.Content>
+                </List.Item>
+              </Grid.Column>
+              <Grid.Column mobile={8} tablet={4} computer={4} textAlign="center">
+                <List.Item className="Stats-statistic">
+                  <List.Content>
+                    <List.Header className="Stats-header">Sell Vol.</List.Header>
+                    <List.Description className="Stats-content">{statistics["sell_volume"]}</List.Description>
+                  </List.Content>
+                </List.Item>
+              </Grid.Column>
+              <Grid.Column mobile={8} tablet={8} computer={8} textAlign="center">
+                <List.Item className="Stats-statistic">
+                  <List.Content>
+                    <List.Header className="Stats-header">Last Price</List.Header>
+                    <List.Description className="Stats-content">{statistics["last_price"]}</List.Description>
+                  </List.Content>
+                </List.Item>
+              </Grid.Column>
+              <Grid.Column mobile={8} tablet={8} computer={8} textAlign="center">
+                <List.Item className="Stats-statistic">
+                  <List.Content>
+                    <List.Header className="Stats-header"># Users</List.Header>
+                    <List.Description className="Stats-content">{statistics["num_users"]}</List.Description>
+                  </List.Content>
+                </List.Item>
+              </Grid.Column>
+            </Grid.Row>
+          </Grid>
+        </div>
       </div>
     );
   }

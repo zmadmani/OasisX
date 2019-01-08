@@ -166,12 +166,12 @@ class BuySell extends Component {
 
     if(index === 0) {
       amount_0_bn = value
-      ui_amount_0 = web3.utils.fromWei(amount_0_bn, 'ether')
+      ui_amount_0 = web3.utils.fromWei(amount_0_bn.toString(), 'ether')
       ui_amount_1 = ui_amount_0 * price
       amount_1_bn = web3.utils.toBN(web3.utils.toWei(ui_amount_1.toString(), 'ether'))
     } else if(index === 1) {
       amount_1_bn = value
-      ui_amount_1 = web3.utils.fromWei(amount_1_bn, 'ether')
+      ui_amount_1 = web3.utils.fromWei(amount_1_bn.toString(), 'ether')
       ui_amount_0 = ui_amount_1 / price
       amount_0_bn = web3.utils.toBN(web3.utils.toWei(ui_amount_0.toString(), 'ether'))
     } else {
