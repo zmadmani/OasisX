@@ -9,6 +9,7 @@ class MyHistory extends Component {
     this.state = {
       loading: false,
       orders: [],
+      max_order: null,
       subscriptions: null
     }
   }
@@ -16,9 +17,9 @@ class MyHistory extends Component {
   async componentDidMount() {
     this.setState({loading: true})
     var orders = await this.getPastOrders()
-    this.setState({ orders, loading: false })
+    var max_order = Math.max.apply(Math, orders.map(function(o) { return o.curr_2; }))
+    this.setState({ orders, max_order, loading: false })
     var subscriptions = await this.subscribeToEvents()
-
     this.setState({ subscriptions })
   }
 
@@ -175,7 +176,7 @@ class MyHistory extends Component {
   }
 
   render() {
-    var { loading, orders } = this.state
+    var { loading, orders, max_order } = this.state
     var { currencies } = this.props
 
     var offers_table = null
@@ -188,9 +189,21 @@ class MyHistory extends Component {
     } else {
       offers_table = (<Table.Body id="MarketHistory-tableBody">
             {orders.map((item, index) => {
+              var ratio = item["curr_2"]/max_order * 100
+              var direction = "right"
+              var color_0 = "rgba(255, 0, 0, 0.2)"
+              var color_1 = "rgba(0,0,0,0)"
+              if(item["type"] === "BUY") {
+                color_0 = "rgba(0, 255, 0, 0.1)"
+                color_1 = "rgba(0, 0, 0, 0)"
+              }
+              var style = { backgroundImage: `linear-gradient(to ${direction}, ${color_0} , ${color_0}), linear-gradient(to ${direction}, ${color_1}, ${color_1})` ,
+                backgroundSize: `calc(${ratio}%) 100%`,
+                backgroundRepeat: `no-repeat`
+              }
               var type = item["type"] === "BUY" ? (<span className="green MarketHistory-type">BUY</span>) : (<span className="red MarketHistory-type">SELL</span>)
               return (
-                <Table.Row key={index}>
+                <Table.Row key={index} style={style}>
                   <Table.Cell>
                     <div className='MarketHistory-table-entry'>{type}</div>
                   </Table.Cell>
@@ -218,7 +231,7 @@ class MyHistory extends Component {
 
     return (
       <div className="MarketHistory">
-        <Table selectable striped basic celled unstackable id="MarketHistory-table">
+        <Table striped basic celled unstackable id="MarketHistory-table">
           <Table.Header>
             <Table.Row>
               <Table.HeaderCell className='MarketHistory-table-header' textAlign='left'>Type</Table.HeaderCell>

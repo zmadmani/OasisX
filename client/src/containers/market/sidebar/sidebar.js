@@ -15,6 +15,7 @@ class SideBar extends Component {
       currency_1_balance: "0",
       id: null,
       info: null,
+      owner: null,
       bignumbers: {},
       button_loading: false,
       button_success: false,
@@ -41,7 +42,8 @@ class SideBar extends Component {
       const currency_0_balance = await drizzle.contracts[currencies[0]].methods.balanceOf(account).call()
       const currency_1_balance = await drizzle.contracts[currencies[1]].methods.balanceOf(account).call()
       const info = await drizzle.contracts.Market.methods.getOffer(this.state.id).call()
-      this.setState({ currency_0_balance, currency_1_balance, info })
+      const owner = await drizzle.contracts.Market.methods.getOwner(this.state.id).call()
+      this.setState({ currency_0_balance, currency_1_balance, info, owner })
     }
     setTimeout(this.updateInfo, 1000)
   }
@@ -65,14 +67,15 @@ class SideBar extends Component {
     if(nextProps.visible !== this.props.visible) {
       this.setState({ visible: nextProps.visible })
       if(nextProps.visible === false) {
-        this.setState({ info: null, amount: '0', ui_amount: '', button_success: false, button_error: false, button_loading: false })
+        this.setState({ info: null, owner: null, amount: '0', ui_amount: '', button_success: false, button_error: false, button_loading: false })
       }
     }
     if(nextProps.sidebar_info !== this.props.sidebar_info) {
       this.setState({ loading: true })
       const info = await this.props.drizzle.contracts.Market.methods.getOffer(nextProps.sidebar_info["id"]).call()
-      this.setState({ id: nextProps.sidebar_info["id"], info, amount: '0', ui_amount: '' })
-      setTimeout(this.stopLoading, 250)
+      const owner = await this.props.drizzle.contracts.Market.methods.getOwner(nextProps.sidebar_info["id"]).call()
+      this.setState({ id: nextProps.sidebar_info["id"], info, owner, amount: '0', ui_amount: '' })
+      setTimeout(this.stopLoading, 150)
     }
   }
 
@@ -190,7 +193,7 @@ class SideBar extends Component {
   }
 
   render() {
-    var { visible, amount, ui_amount, currency_0_balance, currency_1_balance, bignumbers, loading, button_loading, button_error, button_success } = this.state
+    var { visible, amount, ui_amount, currency_0_balance, currency_1_balance, bignumbers, loading, button_loading, button_error, button_success, owner } = this.state
     var { currencies, toggleSidebar, sidebar_info } = this.props
     const web3 = this.props.drizzle.web3
 
@@ -254,6 +257,8 @@ class SideBar extends Component {
       button_text = "FAILED"
     }
 
+    var maker = owner ? owner.substring(0, 10) + " ... " + owner.substring(owner.length - 10, owner.length) : "Loading..."
+
     return (
       <div className="Side_bar">
         <Sidebar as={Segment} animation="overlay" direction="right" visible={visible} id="Side_bar">
@@ -264,6 +269,11 @@ class SideBar extends Component {
           <div id="Side_bar-subtitle">How much would you like to {subtitle}?</div>
           
           <div id="Side_bar-info">
+            <div className="Side_bar-info-item">
+              <div className="Side_bar-info-title">Maker:</div>
+              <div className="Side_bar-info-content">{maker}</div>
+            </div>
+
             <div className="Side_bar-info-item">
               <div className="Side_bar-info-title">Price:</div>
               <div className="Side_bar-info-content">{this.numberWithCommas(updated_info["price"])} <span id="Side_bar-exchange">{currencies[1]} / {currencies[0]}</span></div>
