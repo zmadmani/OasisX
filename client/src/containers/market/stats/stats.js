@@ -16,7 +16,8 @@ class Stats extends Component {
         num_sells: "...",
         buy_volume: "...",
         sell_volume: "...",
-        last_price: "..."
+        last_price: "...",
+        last_type: "BUY"
       },
       subsciption: null
     }
@@ -52,7 +53,8 @@ class Stats extends Component {
       old_stats["num_sells"] !== new_stats["num_sells"] ||
       old_stats["buy_volume"] !== new_stats["buy_volume"] ||
       old_stats["sell_volume"] !== new_stats["sell_volume"] ||
-      old_stats["last_price"] !== new_stats["last_price"] ) {
+      old_stats["last_price"] !== new_stats["last_price"] ||
+      old_stats["last_type"] !== new_stats["last_type"] ) {
       return true
     } else {
       return false
@@ -66,7 +68,8 @@ class Stats extends Component {
       num_sells: 0,
       buy_volume: 0,
       sell_volume: 0,
-      last_price: 0
+      last_price: 0,
+      last_type: "BUY"
     }
 
     var users = {}
@@ -97,6 +100,7 @@ class Stats extends Component {
     }
 
     new_stats["last_price"] = Math.round(orders[0]["price"] * 100) / 100
+    new_stats["last_type"] = orders[0]["type"]
     new_stats["buy_volume"] = Math.round(new_stats["buy_volume"] * 100) / 100
     new_stats["sell_volume"] = Math.round(new_stats["sell_volume"] * 100) / 100
 
@@ -237,6 +241,12 @@ class Stats extends Component {
       color = key === "num_buys" ? "important-green" : "important-red"
       value = <span className={color + " value"}>{value.toString()}</span>
     }
+
+    if(key === "last_price") {
+      color = this.state.stats["last_type"] === "BUY" ? "important-green" : "important-red"
+      value = <span className={color + " value"}>{value.toString()} <span className="sub_value">{this.props.currencies[1]} / {this.props.currencies[0]}</span></span>
+    }
+
     return value
   }
 

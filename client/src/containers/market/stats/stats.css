@@ -49,12 +49,13 @@
 }
 
 .Stats-header {
-	font-size: 1.2rem;
+	font-size: 1.5rem;
+	line-height: 2rem;
 	font-weight: 600;
 }
 
 .Stats-content {
-	font-size: 1.15rem;
+	font-size: 1.25rem;
 	font-weight: 500;
 }
 

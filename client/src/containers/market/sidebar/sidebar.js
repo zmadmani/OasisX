@@ -92,49 +92,26 @@ class SideBar extends Component {
 
   // Most important function in the entire file since it actually interfaces
   // and edits the blockchain.
-  executeTrade = () => {
+  executeTrade = (will_receive) => {
     var { drizzle, drizzleState, sidebar_info } = this.props
     const account = drizzleState.accounts[0]
     const web3 = drizzle.web3
 
-    var amount = this.state.amount === "" ? "0" : this.state.amount.toString()
-    var will_receive = amount
-    will_receive = web3.utils.fromWei(will_receive, 'ether')
-    if(sidebar_info["type"] === "SELL") {
-      will_receive /= sidebar_info["price"]
-      will_receive = web3.utils.toWei(will_receive.toString(), 'ether')
-      if(web3.utils.toBN(will_receive).gt(web3.utils.toBN(this.state.info[0]))) {
-        will_receive = this.state.info[0]
-      }
-      if(web3.utils.toBN(amount).gte(web3.utils.toBN(this.state.currency_1_balance))) {
-        let balance_bn = web3.utils.toBN(this.state.currency_1_balance)
-        let offer_curr_1_bn = web3.utils.toBN(this.state.info[2])
-        let offer_curr_0_bn = web3.utils.toBN(this.state.info[0])
-        will_receive = balance_bn.mul(offer_curr_0_bn).div(offer_curr_1_bn)
-      }
-    } else {
-      will_receive *= sidebar_info["price"]
-      will_receive = web3.utils.toWei(will_receive.toString(), 'ether')
-      if(web3.utils.toBN(will_receive).gt(web3.utils.toBN(this.state.info[2]))) {
-        will_receive = this.state.info[2]
-      }
-      if(web3.utils.toBN(amount).gte(web3.utils.toBN(this.state.currency_0_balance))) {
-        let balance_bn = web3.utils.toBN(this.state.currency_0_balance)
-        let offer_curr_1_bn = web3.utils.toBN(this.state.info[0])
-        let offer_curr_0_bn = web3.utils.toBN(this.state.info[2])
-        will_receive = balance_bn.mul(offer_curr_1_bn).div(offer_curr_0_bn)
-      }
-    }
-
     var id = sidebar_info["id"]
+
+    // Log the inputs for the transaction so that you can always be 100% positive what is being sent
+    var inputs = {
+      "id": id,
+      "will_receive": will_receive.toString(),
+      "will_receive_wholenums": web3.utils.fromWei(will_receive.toString(), 'ether')
+    }
+    console.log(inputs)
 
     drizzle.contracts.Market.methods.buy(id, will_receive.toString()).send({from: account, gasPrice: web3.utils.toWei('5', 'gwei') })
       .on('receipt', this.flashSuccess)
       .on('error', this.flashError)
 
     this.setState({ button_loading: true })
-
-    // this.setState({ visible: false, amount: '0', ui_amount: '', info_key: null })
   }
 
   numberWithCommas(x) {
@@ -192,6 +169,39 @@ class SideBar extends Component {
     return info_obj
   }
 
+  calcWillReceive() {
+    var { drizzle } = this.props
+    var { amount } = this.state
+    const web3 = drizzle.web3
+
+    // Don't forget that these are flipped from the actual smart contract docs since
+    // WE are the counterparties so buy_amt/pay_amt is flipped from expected
+    var buy_amt = web3.utils.toBN(this.state.info[0])
+    var pay_amt = web3.utils.toBN(this.state.info[2])
+
+    let amount_bn = web3.utils.toBN(amount)
+    try {
+      let will_receive = amount_bn.mul(buy_amt).div(pay_amt)
+      return will_receive
+    } catch(err) {
+      return web3.utils.toBN("0")
+    }
+  }
+
+  getMaxTake() {
+    var { sidebar_info, drizzle } = this.props
+    var { info, currency_0_balance, currency_1_balance } = this.state
+    const web3 = drizzle.web3
+
+    var pay_amt = web3.utils.toBN(info[2])
+    var balance = sidebar_info["type"] === "BUY" ? web3.utils.toBN(currency_0_balance) : web3.utils.toBN(currency_1_balance)
+    if(balance.lt(pay_amt)) {
+      return balance
+    } else {
+      return pay_amt
+    }
+  }
+
   render() {
     var { visible, amount, ui_amount, currency_0_balance, currency_1_balance, bignumbers, loading, button_loading, button_error, button_success, owner } = this.state
     var { currencies, toggleSidebar, sidebar_info } = this.props
@@ -222,13 +232,14 @@ class SideBar extends Component {
     // Build object that swaps values for buys and sells so that rendering is simple
     var giving = {
       "currency": null,
+      "receive_currency": null,
       "balance": 0,
       "offered": 0,
-      "max_take": 0,
-      "receive_currency": null,
-      "will_receive": 0
+      "max_take": this.getMaxTake(),
+      "will_receive": this.calcWillReceive(),
+      "maker": owner ? owner.substring(0, 10) + " ... " + owner.substring(owner.length - 10, owner.length) : "Loading...",
     }
-    var will_receive = ui_amount === "" ? 0 : ui_amount
+    giving["ui_will_receive"] = Math.round(web3.utils.fromWei(giving["will_receive"].toString()) * 1000) / 1000
 
     if(action === "BUY") {
       giving["currency"] = currencies[1]
@@ -237,7 +248,6 @@ class SideBar extends Component {
       giving["ui_balance"] = Math.round(web3.utils.fromWei(currency_1_balance.toString(), 'ether') * 1000) / 1000
       giving["offered"] = web3.utils.toBN(updated_info["curr_1_amt"])
       giving["ui_offered"] = Math.round(web3.utils.fromWei(updated_info["curr_1_amt"], 'ether') * 1000) / 1000
-      giving["will_receive"] = Math.round((will_receive / updated_info["price"]) * 1000) / 1000
     } else {
       giving["currency"] = currencies[0]
       giving["receive_currency"] = currencies[1]
@@ -245,19 +255,12 @@ class SideBar extends Component {
       giving["ui_balance"] = Math.round(web3.utils.fromWei(currency_0_balance.toString(), 'ether') * 1000) / 1000
       giving["offered"] = web3.utils.toBN(updated_info["curr_0_amt"])
       giving["ui_offered"] = Math.round(web3.utils.fromWei(updated_info["curr_0_amt"], 'ether') * 1000) / 1000
-      giving["will_receive"] = Math.round((will_receive * updated_info["price"]) * 1000) / 1000
     }
-    giving["max_take"] = giving["balance"].lt(giving["offered"]) ? giving["balance"] : giving["offered"]
 
+    // Adjust the text on the button if an action or error just occurred
     var button_text = action + " " + currencies[0]
-    if(button_success) {
-      button_text = "SUCCESS"
-    }
-    if(button_error) {
-      button_text = "FAILED"
-    }
-
-    var maker = owner ? owner.substring(0, 10) + " ... " + owner.substring(owner.length - 10, owner.length) : "Loading..."
+    button_text = button_success ? "SUCCESS" : button_text
+    button_text = button_error ? "FAILED" : button_text
 
     return (
       <div className="Side_bar">
@@ -271,7 +274,7 @@ class SideBar extends Component {
           <div id="Side_bar-info">
             <div className="Side_bar-info-item">
               <div className="Side_bar-info-title">Maker:</div>
-              <div className="Side_bar-info-content">{maker}</div>
+              <div className="Side_bar-info-content">{giving["maker"]}</div>
             </div>
 
             <div className="Side_bar-info-item">
@@ -313,10 +316,10 @@ class SideBar extends Component {
           </Form>
           <div className="Side_bar-info-item">
             <div className="Side_bar-info-title">Will Receive</div>
-            <div className="Side_bar-info-content">{giving["will_receive"].toString() + " " + giving["receive_currency"]}</div>
+            <div className="Side_bar-info-content">{giving["ui_will_receive"].toString() + " " + giving["receive_currency"]}</div>
           </div>
 
-          <Button className="BuySell-button" loading={button_loading} color={action === "BUY" ? "green" : "red"} disabled={button_text !== action + " " + currencies[0] || ui_amount === "" || web3.utils.toBN(amount).gt(giving["max_take"])} onClick={this.executeTrade}>{button_text}</Button>
+          <Button className="BuySell-button" loading={button_loading} color={action === "BUY" ? "green" : "red"} disabled={button_text !== action + " " + currencies[0] || giving["will_receive"].lte(web3.utils.toBN("1000")) || web3.utils.toBN(amount).gt(giving["max_take"])} onClick={() => this.executeTrade(giving["will_receive"]) }>{button_text}</Button>
 
         </Sidebar>
       </div>

@@ -33,7 +33,7 @@ class MyOrders extends Component {
       return parseInt(a[3]) > parseInt(b[3]) ? 1 : -1
     })
     this.setState({ orders })
-    setTimeout(this.updateOrders, 2500)
+    setTimeout(this.updateOrders, 5000)
   }
 
   async getOrders(type) {

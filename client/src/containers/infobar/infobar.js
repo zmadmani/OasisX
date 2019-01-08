@@ -71,7 +71,7 @@ class Infobar extends Component {
 
     this.setState({ currencies })
 
-    setTimeout(this.updateInfo, 2500)
+    setTimeout(this.updateInfo, 5000)
   }
 
   approveCurrencyForAmount(currency, amount) {

@@ -8,6 +8,7 @@ class BuySell extends Component {
     super(props)
     this.state = {
       loading: false,
+      init: false,
       error: false,
       success: false,
       price: '',
@@ -33,10 +34,14 @@ class BuySell extends Component {
 
   async updateBalances() {
     var { drizzle, drizzleState, currencies } = this.props
-    const account = drizzleState.accounts[0]
-    const currency_0_balance = await drizzle.contracts[currencies[0]].methods.balanceOf(account).call()
-    const currency_1_balance = await drizzle.contracts[currencies[1]].methods.balanceOf(account).call()
-    this.setState({ currency_0_balance, currency_1_balance })
+    var { price, init } = this.state
+
+    if(!init || price !== '') {
+      const account = drizzleState.accounts[0]
+      const currency_0_balance = await drizzle.contracts[currencies[0]].methods.balanceOf(account).call()
+      const currency_1_balance = await drizzle.contracts[currencies[1]].methods.balanceOf(account).call()
+      this.setState({ currency_0_balance, currency_1_balance, init: true })  
+    }
     setTimeout(this.updateBalances, 2500)
   }
 
@@ -86,6 +91,8 @@ class BuySell extends Component {
     } else {
       return
     }
+
+    console.log(data)
 
     this.props.drizzle.contracts.Market.methods.offer(data.pay_amt, data.pay_gem, data.buy_amt, data.buy_gem, 1).send({from: account, gasPrice: web3.utils.toWei('5', 'gwei') })
       .on('receipt', this.flashSuccess)
@@ -163,20 +170,21 @@ class BuySell extends Component {
     var ui_amount_1 = null
     var amount_0_bn = null
     var amount_1_bn = null
+    var price_bn = web3.utils.toBN(web3.utils.toWei(price.toString(), 'ether'))
+    var one_bn = web3.utils.toBN(web3.utils.toWei('1'), 'ether')
 
     if(index === 0) {
       amount_0_bn = value
-      ui_amount_0 = web3.utils.fromWei(amount_0_bn.toString(), 'ether')
-      ui_amount_1 = ui_amount_0 * price
-      amount_1_bn = web3.utils.toBN(web3.utils.toWei(ui_amount_1.toString(), 'ether'))
+      amount_1_bn = amount_0_bn.mul(price_bn).div(one_bn)
     } else if(index === 1) {
       amount_1_bn = value
-      ui_amount_1 = web3.utils.fromWei(amount_1_bn.toString(), 'ether')
-      ui_amount_0 = ui_amount_1 / price
-      amount_0_bn = web3.utils.toBN(web3.utils.toWei(ui_amount_0.toString(), 'ether'))
+      amount_0_bn = amount_1_bn.mul(one_bn).div(price_bn)
     } else {
       return
     }
+
+    ui_amount_0 = web3.utils.fromWei(amount_0_bn, 'ether')
+    ui_amount_1 = web3.utils.fromWei(amount_1_bn, 'ether')
 
     this.setState({
       amount_0: amount_0_bn.toString(),
@@ -200,11 +208,11 @@ class BuySell extends Component {
     var amount_0_bn = web3.utils.toBN(amount_0)
     var amount_1_bn = web3.utils.toBN(amount_1)
 
-    if(curr_0_balance.gte(amount_0_bn) && amount_0_bn.gt(web3.utils.toBN("0"))) {
+    if(curr_0_balance.gte(amount_0_bn) && amount_0_bn.gt(web3.utils.toBN("1000"))) {
       can_sell = true
     }
     
-    if(curr_1_balance.gte(amount_1_bn) && amount_1_bn.gt(web3.utils.toBN("0"))) {
+    if(curr_1_balance.gte(amount_1_bn) && amount_1_bn.gt(web3.utils.toBN("1000"))) {
       can_buy = true
     }
 
