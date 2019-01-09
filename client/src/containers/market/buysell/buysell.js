@@ -183,8 +183,19 @@ class BuySell extends Component {
       return
     }
 
-    ui_amount_0 = web3.utils.fromWei(amount_0_bn, 'ether')
-    ui_amount_1 = web3.utils.fromWei(amount_1_bn, 'ether')
+    try {
+      ui_amount_0 = web3.utils.fromWei(amount_0_bn.toString(), 'ether')
+    } catch(err) {
+      console.log(err)
+      ui_amount_0 = web3.utils.fromWei("0", 'ether')
+    }
+
+    try {
+      ui_amount_1 = web3.utils.fromWei(amount_1_bn.toString(), 'ether')
+    } catch(err) {
+      console.log(err)
+      ui_amount_1 = web3.utils.fromWei("0", 'ether')
+    }
 
     this.setState({
       amount_0: amount_0_bn.toString(),
