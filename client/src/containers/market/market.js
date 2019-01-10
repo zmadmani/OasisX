@@ -3,7 +3,8 @@ import { Grid, Tab } from 'semantic-ui-react'
 
 // import Chart from './chart/chart'
 import OrderList from './orderlist/orderlist'
-import BuySell from './buysell/buysell'
+import LimitOrder from './limitorder/limitorder'
+import MarketOrder from './marketorder/marketorder'
 import MyOrders from './myorders/myorders'
 import Stats from './stats/stats'
 import MarketHistory from './markethistory/markethistory'
@@ -89,10 +90,15 @@ class Market extends Component {
       numSells = "Error..."
     }
 
-    const panes = [
+    const activity_panes = [
       { menuItem: 'Open Orders', render: () => <Tab.Pane className="Market-tab-pane"><MyOrders currencies={currencies} drizzle={drizzle} drizzleState={drizzleState} /></Tab.Pane> },
       { menuItem: 'My History', render: () => <Tab.Pane className="Market-tab-pane"><MyHistory currencies={currencies} drizzle={drizzle} drizzleState={drizzleState} /></Tab.Pane> },
       { menuItem: 'Market History', render: () => <Tab.Pane className="Market-tab-pane"><MarketHistory currencies={currencies} drizzle={drizzle} drizzleState={drizzleState} /></Tab.Pane> },
+    ]
+
+    const buy_panes = [
+      { menuItem: 'Limit Order', render: () => <Tab.Pane className="Market-tab-pane"><LimitOrder currencies={currencies} drizzle={drizzle} drizzleState={ drizzleState } /></Tab.Pane> },
+      { menuItem: 'Market Order', render: () => <Tab.Pane className="Market-tab-pane"><MarketOrder currencies={currencies} drizzle={drizzle} drizzleState={ drizzleState } /></Tab.Pane> }
     ]
 
     return (
@@ -102,14 +108,16 @@ class Market extends Component {
 
         <div className="Market-headers">24-Hour Market Stats</div>
         <div id="Market-stats"><Stats currencies={currencies} drizzle={drizzle} drizzleState={ drizzleState } /></div>
- 
-        <div className="Market-headers">Activity Pane</div>
-        <div id="Market-activity-pane">
-          <Tab menu={{ fluid: true, tabular: true, attached: 'top' }} panes={panes} />
-        </div>
 
-        <div className="Market-headers">Make Order</div>
-        <div id="Market-buysell"><BuySell currencies={currencies} drizzle={drizzle} drizzleState={ drizzleState } /></div>
+        <div className="Market-headers">Order Center</div>
+        <div id="Market-buysell">
+          <Tab menu={{ fluid: true, tabular: true, attached: 'top' }} panes={buy_panes} />
+        </div>
+ 
+        <div className="Market-headers">Activity Center</div>
+        <div id="Market-activity-pane">
+          <Tab menu={{ fluid: true, tabular: true, attached: 'top' }} panes={activity_panes} />
+        </div>
         
         <Grid divided id="Market-orderlists">
           <Grid.Row>

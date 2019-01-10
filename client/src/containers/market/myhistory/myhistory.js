@@ -108,22 +108,23 @@ class MyHistory extends Component {
   }
 
   eventsToOrders(events) {
-    let account = this.props.drizzleState.accounts[0]
     var orders = []
     for(var i = 0; i < events.length; i++) {
       var order = events[i].returnValues
       var type = this.getType(order)
       var pay_amt = this.props.drizzle.web3.utils.fromWei(order["give_amt"].toString(), 'ether')
       var buy_amt = this.props.drizzle.web3.utils.fromWei(order["take_amt"].toString(), 'ether')
+      var offer = this.getPrice(pay_amt, buy_amt, type)
+      
       var true_type = type
-      if(order["maker"] === account) {
-        if(type === "BUY") {
+      if(events[i]["role"] === "maker") {
+        if(true_type === "BUY") {
           true_type = "SELL"
         } else {
           true_type = "BUY"
         }
       }
-      var offer = this.getPrice(pay_amt, buy_amt, type)
+
       var timestamp = new Date(order["timestamp"] * 1000)
       timestamp = timestamp.toLocaleTimeString() + " " + timestamp.toLocaleDateString()
       order = {
@@ -159,14 +160,22 @@ class MyHistory extends Component {
       fromBlock: latestBlock - 25000,
       toBlock: 'latest'
     })
+    taker_events = taker_events.map((item) => {
+      item["role"] = "taker"
+      return item
+    })
+
     var maker_events = await market.getPastEvents("LogTake", {
       filter: { pair: [hashKey1, hashKey2], maker: account },
       fromBlock: latestBlock - 25000,
       toBlock: 'latest'
     })
+    maker_events = maker_events.map((item) => {
+      item["role"] = "maker"
+      return item
+    })
 
     var events = maker_events.concat(taker_events)
-
     events.sort(function(first, second) {
       return first.returnValues.timestamp - second.returnValues.timestamp
     })

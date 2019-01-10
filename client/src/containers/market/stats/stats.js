@@ -99,11 +99,14 @@ class Stats extends Component {
       }
     }
 
-    new_stats["last_price"] = Math.round(orders[0]["price"] * 100) / 100
-    new_stats["last_type"] = orders[0]["type"]
-    new_stats["buy_volume"] = Math.round(new_stats["buy_volume"] * 100) / 100
-    new_stats["sell_volume"] = Math.round(new_stats["sell_volume"] * 100) / 100
+    if(orders.length > 0) {
+      new_stats["last_price"] = Math.round(orders[0]["price"] * 100) / 100
+      new_stats["last_type"] = orders[0]["type"]
+      new_stats["buy_volume"] = Math.round(new_stats["buy_volume"] * 100) / 100
+      new_stats["sell_volume"] = Math.round(new_stats["sell_volume"] * 100) / 100
+    }
 
+    document.title = this.props.currencies[0] + "/" + this.props.currencies[1] + ": " + new_stats["last_price"]
     this.setState({ stats: new_stats, loading: false })
   }
 

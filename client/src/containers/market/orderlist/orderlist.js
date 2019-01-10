@@ -77,6 +77,7 @@ class OrderList extends Component {
     for(var i = 0; i < n; i++) {
       if(rawOrders["ids"][i] !== "0") {
         var id = rawOrders["ids"][i]
+        var maker = rawOrders["owners"][i]
         var pay_amount = this.props.drizzle.web3.utils.fromWei(rawOrders["payAmts"][i].toString(), 'ether')
         var buy_amount = this.props.drizzle.web3.utils.fromWei(rawOrders["buyAmts"][i].toString(), 'ether') 
         var price = 0
@@ -90,7 +91,8 @@ class OrderList extends Component {
             "curr_0_amt": buy_amount,
             "curr_1_amt": pay_amount,
             "id": id,
-            "type": type
+            "type": type,
+            "maker": maker
           }
         } else {
           price = Math.round(buy_amount / pay_amount * 1000) / 1000
@@ -101,7 +103,8 @@ class OrderList extends Component {
             "curr_0_amt": pay_amount,
             "curr_1_amt": buy_amount,
             "id": id,
-            "type": type
+            "type": type,
+            "maker": maker
           }
         }
         orders.push(order)
@@ -119,7 +122,8 @@ class OrderList extends Component {
 
   buildRow(item, index) {
     var { max_order } = this.state
-    var { type } = this.props
+    var { type, drizzleState } = this.props
+    var account = drizzleState.accounts[0]
 
     var ratio = item["curr_1_amt"]/max_order * 100
     var direction = "right"
@@ -134,8 +138,13 @@ class OrderList extends Component {
       backgroundRepeat: `no-repeat`
     }
 
+    var class_names = "OrderList-table-row "
+    if(account === item["maker"]) {
+      class_names += "OrderList-my-order"
+    }
+
     return (
-      <Table.Row key={item["id"]} onClick={() => this.props.setSidebar(item) } className="OrderList-table-row" style={style}>
+      <Table.Row className={class_names} key={item["id"]} onClick={() => this.props.setSidebar(item) } style={style}>
         <Table.Cell>
           <div className='OrderList-table-entry'>{this.numberWithCommas(item["price"])}</div>
         </Table.Cell>

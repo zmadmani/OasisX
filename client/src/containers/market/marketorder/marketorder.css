@@ -1,0 +1,39 @@
+.MarketOrder {
+	background-color: #152128;
+	width: 100%;
+	padding: 1.5rem;
+	min-height: 300px;
+}
+
+.MarketOrder-headers {
+	font-size: 1.15rem;
+	font-weight: 600;
+	line-height: 2rem;
+}
+
+.MarketOrder-button {
+	margin-right: 1rem !important;
+}
+
+.MarketOrder-mini-buttons {
+	font-size: 0.5em;
+	width: 100%;
+	padding: 0rem 0rem 0.5rem 0rem;
+}
+
+.MarketOrder-amount-input {
+	padding: 0rem 0rem 0.5rem 0rem;
+}
+
+.MarketOrder-color {
+	font-weight: 600;
+	font-size: 1.15rem;
+}
+
+.MarketOrder-main-header {
+	font-size: 2rem;
+	font-weight: 600;
+	line-height: 2rem;
+	padding-bottom: 2.85rem;
+	padding-top: 0.35rem;
+}

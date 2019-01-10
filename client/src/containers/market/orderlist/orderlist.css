@@ -34,3 +34,7 @@
 	text-align: center;
 	padding-top: 50%;
 }
+
+#OrderList-tableBody>.OrderList-my-order {
+	background-color: #3f4a50 !important;
+}

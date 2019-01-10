@@ -7,7 +7,8 @@ class MyOrders extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      orders: []
+      orders: [],
+      timer: null
     }
 
     this.updateOrders = this.updateOrders.bind(this)
@@ -15,6 +16,12 @@ class MyOrders extends Component {
 
   async componentDidMount() {
     this.updateOrders()
+  }
+
+  componentWillUnmount() {
+    if(this.state.timer) {
+      clearTimeout(this.state.timer)
+    }
   }
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -32,8 +39,8 @@ class MyOrders extends Component {
     orders.sort(function(a, b) {
       return parseInt(a[3]) > parseInt(b[3]) ? 1 : -1
     })
-    this.setState({ orders })
-    setTimeout(this.updateOrders, 5000)
+    var timer = setTimeout(this.updateOrders, 5000)
+    this.setState({ timer, orders })
   }
 
   async getOrders(type) {

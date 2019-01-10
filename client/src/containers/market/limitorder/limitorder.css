@@ -1,0 +1,31 @@
+.LimitOrder {
+	background-color: #152128;
+	width: 100%;
+	padding: 1.5rem;
+	min-height: 300px;
+}
+
+.LimitOrder-headers {
+	font-size: 1.15rem;
+	font-weight: 600;
+	line-height: 2rem;
+}
+
+.LimitOrder-button {
+	margin-right: 1rem !important;
+}
+
+.LimitOrder-mini-buttons {
+	font-size: 0.5em;
+	width: 100%;
+	padding: 0rem 0rem 0.5rem 0rem;
+}
+
+.LimitOrder-amount-input {
+	padding: 0rem 0rem 0.5rem 0rem;
+}
+
+.LimitOrder-color {
+	font-weight: 600;
+	font-size: 1.15rem;
+}
