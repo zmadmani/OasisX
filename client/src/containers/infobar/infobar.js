@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Header, Table, Checkbox } from 'semantic-ui-react'
+import { Header, Table, Checkbox, Icon } from 'semantic-ui-react'
 import './infobar.css'
 
 import WrapStation from './wrapstation/wrapstation'
@@ -131,7 +131,7 @@ class Infobar extends Component {
 
   render() {
     const { currencies } = this.state
-    const { padded, drizzle, drizzleState } = this.props
+    const { padded, closeSidebar, drizzle, drizzleState } = this.props
     let account = drizzleState.accounts[0]
 
     const vals = Object.keys(currencies).map((key) => {
@@ -150,17 +150,15 @@ class Infobar extends Component {
 
     var padding = null
     var ui_account = account
+    var x_icon = <Icon name="close" id="Infobar-x" size="large" onClick={closeSidebar} />
     if(padded) {
       padding = "very"
-    } else {
-      if(ui_account) {
-        ui_account = ui_account.substring(0, 10) + " ... " + ui_account.substring(ui_account.length - 10, ui_account.length) 
-      }
+      x_icon = null
     }
 
     return (
       <div id='Infobar'>
-        <div className='Infobar-header'><HumanName drizzle={drizzle} drizzleState={drizzleState} address={ui_account} /></div>
+        <div className='Infobar-header'><HumanName drizzle={drizzle} drizzleState={drizzleState} address={ui_account} />{x_icon}</div>
         <Table basic='very' padded={padding} striped unstackable id="Infobar-table">
           <Table.Header id="Infobar-table-header">
             <Table.Row>

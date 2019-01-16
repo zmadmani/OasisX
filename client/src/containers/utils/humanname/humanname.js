@@ -20,9 +20,18 @@ class HumanName extends Component {
     var two_hundred = web3.utils.toBN("200")
 
     address = address.substr(2)
-    var portion_1 = web3.utils.toBN(web3.utils.hexToNumberString(address.substr(0, 20))).mod(two_hundred).toString()
-    var portion_2 = web3.utils.toBN(web3.utils.hexToNumberString(address.substr(20, 40))).mod(two_hundred).toString()
-    return first_names[portion_1] + " " + last_names[portion_2]
+    var portion_1 = web3.utils.hexToNumberString(address.substr(0, 20))
+    var portion_2 = web3.utils.hexToNumberString(address.substr(20, 40))
+    
+    portion_1 = web3.utils.toBN(portion_1).mod(two_hundred).toString()
+    portion_2 = web3.utils.toBN(portion_2).mod(two_hundred).toString()
+
+    if(portion_1 !== 0 && portion_2 !== 0) {
+      return first_names[portion_1] + " " + last_names[portion_2]
+    } else {
+      return address
+    }
+
   }
 
   render() {
