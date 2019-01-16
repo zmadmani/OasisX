@@ -12,11 +12,11 @@
 }
 
 .Infobar-header {
-	padding: 2rem 0rem;
+	padding: 1.5rem 1.5rem;
 	width: 100%;
-	text-align: center;
+	text-align: left;
 	font-weight: 600;
-	font-size: 1rem;
+	font-size: 1.5rem;
 }
 
 .Infobar-item {

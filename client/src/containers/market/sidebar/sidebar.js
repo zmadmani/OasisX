@@ -1,6 +1,8 @@
 import React, { Component } from 'react'
 import { Sidebar, Segment, Icon, Input, Form, Button, Loader } from 'semantic-ui-react'
 
+import HumanName from '../../utils/humanname/humanname'
+
 import './sidebar.css'
 
 class SideBar extends Component {
@@ -204,7 +206,7 @@ class SideBar extends Component {
 
   render() {
     var { visible, amount, ui_amount, currency_0_balance, currency_1_balance, bignumbers, loading, button_loading, button_error, button_success, owner } = this.state
-    var { currencies, toggleSidebar, sidebar_info } = this.props
+    var { currencies, toggleSidebar, sidebar_info, drizzle, drizzleState } = this.props
     const web3 = this.props.drizzle.web3
 
     // Invert the type since the action do as a taker is the inverse of the action of the maker
@@ -237,7 +239,7 @@ class SideBar extends Component {
       "offered": 0,
       "max_take": this.getMaxTake(),
       "will_receive": this.calcWillReceive(),
-      "maker": owner ? owner.substring(0, 10) + " ... " + owner.substring(owner.length - 10, owner.length) : "Loading...",
+      "maker": owner ? <HumanName drizzle={drizzle} drizzleState={drizzleState} address={owner} /> : "Loading...",
     }
     giving["ui_will_receive"] = Math.round(web3.utils.fromWei(giving["will_receive"].toString()) * 1000) / 1000
 

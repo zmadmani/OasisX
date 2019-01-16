@@ -100,13 +100,13 @@ class Stats extends Component {
     }
 
     if(orders.length > 0) {
-      new_stats["last_price"] = Math.round(orders[0]["price"] * 100) / 100
+      new_stats["last_price"] = Math.round(orders[0]["price"] * 1000) / 1000
       new_stats["last_type"] = orders[0]["type"]
       new_stats["buy_volume"] = Math.round(new_stats["buy_volume"] * 100) / 100
       new_stats["sell_volume"] = Math.round(new_stats["sell_volume"] * 100) / 100
     }
 
-    document.title = this.props.currencies[0] + "/" + this.props.currencies[1] + ": " + new_stats["last_price"]
+    document.title = new_stats["last_price"] + " " + this.props.currencies[1] + "/" + this.props.currencies[0]
     this.setState({ stats: new_stats, loading: false })
   }
 
@@ -163,16 +163,28 @@ class Stats extends Component {
   }
 
   getPrice(pay_amt, buy_amt, type) {
+    var web3 = this.props.drizzle.web3
+    pay_amt = web3.utils.toBN(pay_amt)
+    buy_amt = web3.utils.toBN(buy_amt)
+
+    if(pay_amt.lte(web3.utils.toBN("1000")) || buy_amt.lte(web3.utils.toBN("1000"))) {
+      return false
+    }
+
+    var one = web3.utils.toBN(web3.utils.toWei("1", "ether"))
+
     var price = 0
     if(type === "BUY") {
-      price = Math.round(pay_amt / buy_amt * 1000) / 1000
-      buy_amt = Math.round(buy_amt * 1000) / 1000
-      pay_amt = Math.round(pay_amt * 1000) / 1000
+      price = parseFloat(web3.utils.fromWei(one.mul(pay_amt).div(buy_amt).toString(), 'ether'))
+      // price = Math.round(pay_amt / buy_amt * 1000) / 1000
+      buy_amt = parseFloat(web3.utils.fromWei(buy_amt.toString(), 'ether'))
+      pay_amt = parseFloat(web3.utils.fromWei(pay_amt.toString(), 'ether'))
       return [price, buy_amt, pay_amt]
     } else {
-      price = Math.round(buy_amt / pay_amt * 1000) / 1000
-      buy_amt = Math.round(buy_amt * 1000) / 1000
-      pay_amt = Math.round(pay_amt * 1000) / 1000
+      price = parseFloat(web3.utils.fromWei(one.mul(buy_amt).div(pay_amt).toString(), 'ether'))
+      // price = Math.round(buy_amt / pay_amt * 1000) / 1000
+      buy_amt = parseFloat(web3.utils.fromWei(buy_amt.toString(), 'ether'))
+      pay_amt = parseFloat(web3.utils.fromWei(pay_amt.toString(), 'ether'))
       return [price, pay_amt, buy_amt]
     }
   }
@@ -182,22 +194,24 @@ class Stats extends Component {
     for(var i = 0; i < events.length; i++) {
       var order = events[i].returnValues
       var type = this.getType(order)
-      var pay_amt = this.props.drizzle.web3.utils.fromWei(order["give_amt"].toString(), 'ether')
-      var buy_amt = this.props.drizzle.web3.utils.fromWei(order["take_amt"].toString(), 'ether')
+      var pay_amt = order["give_amt"].toString()
+      var buy_amt = order["take_amt"].toString()
       var offer = this.getPrice(pay_amt, buy_amt, type)
-      var timestamp = new Date(order["timestamp"] * 1000)
-      timestamp = timestamp.toLocaleTimeString() + " " + timestamp.toLocaleDateString()
-      order = {
-        "raw_timestamp": order["timestamp"] * 1000,
-        "timestamp": timestamp,
-        "type": type,
-        "price": offer[0],
-        "curr_1": offer[1],
-        "curr_2": offer[2],
-        "taker": order["taker"],
-        "maker": order["maker"]
+      if(offer) {
+        var timestamp = new Date(order["timestamp"] * 1000)
+        timestamp = timestamp.toLocaleTimeString() + " " + timestamp.toLocaleDateString()
+        order = {
+          "raw_timestamp": order["timestamp"] * 1000,
+          "timestamp": timestamp,
+          "type": type,
+          "price": offer[0],
+          "curr_1": offer[1],
+          "curr_2": offer[2],
+          "taker": order["taker"],
+          "maker": order["maker"]
+        }
+        orders.push(order)
       }
-      orders.push(order)
     }
     orders.reverse()
     return orders

@@ -19,7 +19,9 @@ class LimitOrder extends Component {
       currency_0_balance: "0",
       currency_1_balance: "0",
       bignumbers: [],
-      timer: null
+      timer: null,
+      last_price: '',
+      subscription: null
     }
 
     this.handleSubmit = this.handleSubmit.bind(this)
@@ -31,12 +33,122 @@ class LimitOrder extends Component {
   componentDidMount() {
     this.generateBigNumbers()
     this.updateBalances()
+    this.getPastOrders()
+    this.subscribeToEvents().then((subscription) => {
+      this.setState({ subscription })
+    })
   }
 
   componentWillUnmount() {
     if(this.state.timer) {
       clearTimeout(this.state.timer)
     }
+
+    if(this.state.subscription) {
+      this.state.subscription.unsubscribe()
+    }
+  }
+
+  getPrice(pay_amt, buy_amt, type) {
+    var web3 = this.props.drizzle.web3
+    pay_amt = web3.utils.toBN(pay_amt)
+    buy_amt = web3.utils.toBN(buy_amt)
+
+    if(pay_amt.lte(web3.utils.toBN("1000")) || buy_amt.lte(web3.utils.toBN("1000"))) {
+      return false
+    }
+
+    var one = web3.utils.toBN(web3.utils.toWei("1", "ether"))
+
+    var price = 0
+    if(type === "BUY") {
+      price = parseFloat(web3.utils.fromWei(one.mul(pay_amt).div(buy_amt).toString(), 'ether'))
+      // price = Math.round(pay_amt / buy_amt * 1000) / 1000
+      buy_amt = parseFloat(web3.utils.fromWei(buy_amt.toString(), 'ether'))
+      pay_amt = parseFloat(web3.utils.fromWei(pay_amt.toString(), 'ether'))
+      return [price, buy_amt, pay_amt]
+    } else {
+      price = parseFloat(web3.utils.fromWei(one.mul(buy_amt).div(pay_amt).toString(), 'ether'))
+      // price = Math.round(buy_amt / pay_amt * 1000) / 1000
+      buy_amt = parseFloat(web3.utils.fromWei(buy_amt.toString(), 'ether'))
+      pay_amt = parseFloat(web3.utils.fromWei(pay_amt.toString(), 'ether'))
+      return [price, pay_amt, buy_amt]
+    }
+  }
+
+  getType(order) {
+    var { currencies, drizzle } = this.props
+
+    var curr_1_addr = drizzle.contracts[currencies[0]].address
+    var curr_2_addr = drizzle.contracts[currencies[1]].address
+
+    var buy_addr = order["buy_gem"]
+    var pay_addr = order["pay_gem"]
+
+    if(buy_addr === curr_1_addr && pay_addr === curr_2_addr) {
+      return "SELL"
+    } else if(buy_addr === curr_2_addr && pay_addr === curr_1_addr) {
+      return "BUY"
+    } else {
+      return null
+    }
+  }
+
+  async subscribeToEvents() {
+    var { currencies, drizzle } = this.props
+    var { Market } = drizzle.contracts
+    
+    var web3 = drizzle.web3
+    var latestBlock = await web3.eth.getBlockNumber()
+    
+    var curr_1_addr = drizzle.contracts[currencies[0]].address
+    var curr_2_addr = drizzle.contracts[currencies[1]].address
+    
+    const hashKey1 = web3.utils.soliditySha3(curr_1_addr, curr_2_addr)
+    const hashKey2 = web3.utils.soliditySha3(curr_2_addr, curr_1_addr)
+    
+    const market = new web3.eth.Contract(Market.abi, Market.address)
+    var subscription = market.events.LogTake({
+      filter: { pair: [hashKey1, hashKey2] },
+      fromBlock: latestBlock
+    }).on('data', function(event) {
+      event = event.returnValues
+      console.log(event)
+      var type = this.getType(event)
+      var pay_amt = event["give_amt"].toString()
+      var buy_amt = event["take_amt"].toString()
+      var offer = this.getPrice(pay_amt, buy_amt, type)
+      var last_price = Math.round(offer[0] * 1000) / 1000
+      this.setState({ last_price })
+    }.bind(this))
+
+    return subscription
+  }
+
+  async getPastOrders() {
+    var { currencies, drizzle } = this.props
+    var { Market } = drizzle.contracts
+    var web3 = drizzle.web3
+    var latestBlock = await web3.eth.getBlockNumber()
+
+    var curr_1_addr = drizzle.contracts[currencies[0]].address
+    var curr_2_addr = drizzle.contracts[currencies[1]].address
+    const hashKey1 = web3.utils.soliditySha3(curr_1_addr, curr_2_addr)
+    const hashKey2 = web3.utils.soliditySha3(curr_2_addr, curr_1_addr)
+
+    const market = new web3.eth.Contract(Market.abi, Market.address)
+    var events = await market.getPastEvents("LogTake", {
+      filter: { pair: [hashKey1, hashKey2] },
+      fromBlock: latestBlock - 250,
+      toBlock: 'latest'
+    })
+    var last_event = events[events.length-1].returnValues
+    var type = this.getType(last_event)
+    var pay_amt = last_event["give_amt"].toString()
+    var buy_amt = last_event["take_amt"].toString()
+    var offer = this.getPrice(pay_amt, buy_amt, type)
+    var last_price = Math.round(offer[0] * 1000) / 1000
+    this.setState({ last_price })
   }
 
   async updateBalances() {
@@ -215,7 +327,7 @@ class LimitOrder extends Component {
   }
 
   render() {
-    var { price, amount_0, amount_1, ui_amount_0, ui_amount_1, currency_0_balance, currency_1_balance, bignumbers, loading, success, error } = this.state
+    var { price, last_price, amount_0, amount_1, ui_amount_0, ui_amount_1, currency_0_balance, currency_1_balance, bignumbers, loading, success, error } = this.state
     var { currencies } = this.props
     const web3 = this.props.drizzle.web3
     
@@ -228,11 +340,11 @@ class LimitOrder extends Component {
     var amount_0_bn = web3.utils.toBN(amount_0)
     var amount_1_bn = web3.utils.toBN(amount_1)
 
-    if(curr_0_balance.gte(amount_0_bn) && amount_0_bn.gt(web3.utils.toBN("1000"))) {
+    if(price !== "" && curr_0_balance.gte(amount_0_bn) && amount_0_bn.gt(web3.utils.toBN("1000"))) {
       can_sell = true
     }
     
-    if(curr_1_balance.gte(amount_1_bn) && amount_1_bn.gt(web3.utils.toBN("1000"))) {
+    if(price !== "" && curr_1_balance.gte(amount_1_bn) && amount_1_bn.gt(web3.utils.toBN("1000"))) {
       can_buy = true
     }
 
@@ -259,6 +371,7 @@ class LimitOrder extends Component {
               value={price}
               onChange={(e) => { this.handlePriceChange(e.target.value) }}
             />
+            <span className="LimitOrder-currentPrice" onClick={() => this.handlePriceChange(last_price) } >Current Market Price</span>
           </Form.Field>
           <div className="LimitOrder-headers">Amounts</div>
           <Form.Group widths='equal'>
