@@ -42,12 +42,18 @@
 
 .MarketHistory-arrow {
 	max-width: 30%;
-	text-align: left;
+	padding: 0rem 0.5rem;
 	float: left;
 }
 
-.MarketHistory-participant {
-	width: 30%;
+.MarketHistory-maker {
+	max-width: 30%;
+	float: left;
+	margin: auto 0;
+}
+
+.MarketHistory-taker {
+	max-width: 30%;
 	float: left;
 	margin: auto 0;
 }
@@ -56,4 +62,10 @@
      position: sticky !important;
      top: 0;
      z-index: 2;
+}
+
+@media (max-width: 768px) {
+	.MarketHistory-arrow {
+		padding: 0rem 0.25rem;
+	}
 }

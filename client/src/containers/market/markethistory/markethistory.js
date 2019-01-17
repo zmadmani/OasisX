@@ -177,9 +177,9 @@ class MarketHistory extends Component {
               }
               var type = item["type"] === "BUY" ? (<span className="green MarketHistory-type">BUY</span>) : (<span className="red MarketHistory-type">SELL</span>)
               var participants = (<div className="MarketHistory-participants">
-                                    <div className="MarketHistory-participant"><HumanName drizzle={drizzle} icon_only address={item["taker"]} /></div>
+                                    <div className="MarketHistory-taker"><HumanName drizzle={drizzle} icon_only address={item["taker"]} /></div>
                                     <div className="MarketHistory-arrow"><Icon size="large" name="long arrow alternate right" /></div>
-                                    <div className="MarketHistory-participant"><HumanName drizzle={drizzle} icon_only address={item["maker"]} /></div>
+                                    <div className="MarketHistory-maker"><HumanName drizzle={drizzle} icon_only address={item["maker"]} /></div>
                                   </div>)
               return (
                 <Table.Row key={index} style={style}>
@@ -219,7 +219,7 @@ class MarketHistory extends Component {
             <Table.Row>
               <Table.HeaderCell className='MarketHistory-table-header' textAlign='left'>Type</Table.HeaderCell>
               <Table.HeaderCell className='MarketHistory-table-header' textAlign='left'>Time</Table.HeaderCell>
-              <Table.HeaderCell className='MarketHistory-table-header' textAlign='center'>Participants</Table.HeaderCell>
+              <Table.HeaderCell className='MarketHistory-table-header' textAlign='left'>Participants</Table.HeaderCell>
               <Table.HeaderCell className='MarketHistory-table-header' textAlign='left'>Price</Table.HeaderCell>
               <Table.HeaderCell className='MarketHistory-table-header' textAlign='left'>{currencies[0]}</Table.HeaderCell>
               <Table.HeaderCell className='MarketHistory-table-header' textAlign='left'>{currencies[1]}</Table.HeaderCell>
