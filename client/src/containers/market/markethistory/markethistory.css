@@ -40,6 +40,18 @@
 	font-weight: 600;
 }
 
+.MarketHistory-arrow {
+	max-width: 30%;
+	text-align: left;
+	float: left;
+}
+
+.MarketHistory-participant {
+	width: 30%;
+	float: left;
+	margin: auto 0;
+}
+
 .ui.table thead tr:first-child > th {
      position: sticky !important;
      top: 0;

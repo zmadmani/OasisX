@@ -148,18 +148,16 @@ class Infobar extends Component {
       return obj
     })
 
-    var padding = null
     var ui_account = account
     var x_icon = <Icon name="close" id="Infobar-x" size="large" onClick={closeSidebar} />
     if(padded) {
-      padding = "very"
       x_icon = null
     }
 
     return (
       <div id='Infobar'>
         <div className='Infobar-header'><HumanName drizzle={drizzle} drizzleState={drizzleState} address={ui_account} />{x_icon}</div>
-        <Table basic='very' padded={padding} striped unstackable id="Infobar-table">
+        <Table basic='very' padded={"very"} striped unstackable id="Infobar-table">
           <Table.Header id="Infobar-table-header">
             <Table.Row>
               <Table.HeaderCell className='Infobar-table-entry' textAlign='left'>Token</Table.HeaderCell>

@@ -1,6 +1,8 @@
 import React, { Component } from 'react'
 import { Table } from 'semantic-ui-react'
 
+import HumanName from '../../utils/humanname/humanname'
+
 import './myhistory.css'
 
 class MyHistory extends Component {
@@ -186,7 +188,7 @@ class MyHistory extends Component {
 
   render() {
     var { loading, orders, max_order } = this.state
-    var { currencies } = this.props
+    var { currencies, drizzle } = this.props
 
     var offers_table = null
     var background_item = null
@@ -221,6 +223,10 @@ class MyHistory extends Component {
                     <div className='MarketHistory-table-entry'>{item["timestamp"]}</div>
                   </Table.Cell>
 
+                  <Table.Cell width={1}>
+                    <div className='MarketHistory-table-entry'><HumanName address={item["taker"]} icon_only drizzle={drizzle} /></div>
+                  </Table.Cell>
+
                   <Table.Cell>
                     <div className='MarketHistory-table-entry'>{this.numberWithCommas(item["price"])}</div>
                   </Table.Cell>
@@ -245,6 +251,7 @@ class MyHistory extends Component {
             <Table.Row>
               <Table.HeaderCell className='MarketHistory-table-header' textAlign='left'>Type</Table.HeaderCell>
               <Table.HeaderCell className='MarketHistory-table-header' textAlign='left'>Time</Table.HeaderCell>
+              <Table.HeaderCell className='MarketHistory-table-header' textAlign='left'>Taker</Table.HeaderCell>
               <Table.HeaderCell className='MarketHistory-table-header' textAlign='left'>Price</Table.HeaderCell>
               <Table.HeaderCell className='MarketHistory-table-header' textAlign='left'>{currencies[0]}</Table.HeaderCell>
               <Table.HeaderCell className='MarketHistory-table-header' textAlign='left'>{currencies[1]}</Table.HeaderCell>

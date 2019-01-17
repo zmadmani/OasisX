@@ -1,5 +1,7 @@
 import React, { Component } from 'react'
-import { Table } from 'semantic-ui-react'
+import { Table, Icon } from 'semantic-ui-react'
+
+import HumanName from '../../utils/humanname/humanname'
 
 import './orderlist.css'
 
@@ -122,7 +124,7 @@ class OrderList extends Component {
 
   buildRow(item, index) {
     var { max_order } = this.state
-    var { type, drizzleState } = this.props
+    var { type, drizzleState, drizzle } = this.props
     var account = drizzleState.accounts[0]
 
     var ratio = item["curr_1_amt"]/max_order * 100
@@ -145,6 +147,9 @@ class OrderList extends Component {
 
     return (
       <Table.Row className={class_names} key={item["id"]} onClick={() => this.props.setSidebar(item) } style={style}>
+        <Table.Cell textAlign='left' width={1}>
+          <div className='OrderList-table-entry OrderList-icon'><HumanName inactive_link icon_only drizzleState={drizzleState} drizzle={drizzle} address={item["maker"]} /></div>
+        </Table.Cell>
         <Table.Cell>
           <div className='OrderList-table-entry'>{this.numberWithCommas(item["price"])}</div>
         </Table.Cell>
@@ -156,6 +161,7 @@ class OrderList extends Component {
         <Table.Cell  textAlign='left'>
           <div className='OrderList-table-entry'>{this.numberWithCommas(item["curr_1_amt"])}</div>
         </Table.Cell>
+
       </Table.Row>
     )
   }
@@ -185,6 +191,7 @@ class OrderList extends Component {
         <Table striped basic celled unstackable id="OrderList-table">
           <Table.Header>
             <Table.Row>
+              <Table.HeaderCell className='OrderList-table-header'><Icon name="user circle" size="large" /></Table.HeaderCell>
               <Table.HeaderCell className='OrderList-table-header' textAlign='left'>Price</Table.HeaderCell>
               <Table.HeaderCell className='OrderList-table-header' textAlign='left'>{currencies[0]}</Table.HeaderCell>
               <Table.HeaderCell className='OrderList-table-header' textAlign='left'>{currencies[1]}</Table.HeaderCell>

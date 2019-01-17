@@ -1,3 +1,33 @@
 .HumanName {
 	cursor: pointer;
+	display: -webkit-box;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-box-align: center;
+	-ms-flex-align: center;
+	align-items: center;
+	-webkit-box-pack: center;
+	-ms-flex-pack: center;
+	font-family: sans-serif;
+}
+
+:root {
+	--avatar-size: 26px;
+}
+
+.HumanName-circle {
+  border-radius: 50%;
+  height: var(--avatar-size);
+  width: var(--avatar-size);
+  text-align: center;
+}
+
+.HumanName-initials {
+  font-size: 0.9rem; /* 50% of parent */
+  font-weight: 600;
+  line-height: var(--avatar-size);
+}
+
+.HumanName-name {
+	padding-left: 0.5rem;
 }

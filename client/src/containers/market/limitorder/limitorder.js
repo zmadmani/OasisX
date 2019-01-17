@@ -113,7 +113,6 @@ class LimitOrder extends Component {
       fromBlock: latestBlock
     }).on('data', function(event) {
       event = event.returnValues
-      console.log(event)
       var type = this.getType(event)
       var pay_amt = event["give_amt"].toString()
       var buy_amt = event["take_amt"].toString()
@@ -142,13 +141,15 @@ class LimitOrder extends Component {
       fromBlock: latestBlock - 250,
       toBlock: 'latest'
     })
-    var last_event = events[events.length-1].returnValues
-    var type = this.getType(last_event)
-    var pay_amt = last_event["give_amt"].toString()
-    var buy_amt = last_event["take_amt"].toString()
-    var offer = this.getPrice(pay_amt, buy_amt, type)
-    var last_price = Math.round(offer[0] * 1000) / 1000
-    this.setState({ last_price })
+    if(events.length > 0) {
+      var last_event = events[events.length-1].returnValues
+      var type = this.getType(last_event)
+      var pay_amt = last_event["give_amt"].toString()
+      var buy_amt = last_event["take_amt"].toString()
+      var offer = this.getPrice(pay_amt, buy_amt, type)
+      var last_price = Math.round(offer[0] * 1000) / 1000
+      this.setState({ last_price })
+    }
   }
 
   async updateBalances() {

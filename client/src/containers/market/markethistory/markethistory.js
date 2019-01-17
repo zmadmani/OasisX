@@ -1,5 +1,7 @@
 import React, { Component } from 'react'
-import { Table } from 'semantic-ui-react'
+import { Table, Icon } from 'semantic-ui-react'
+
+import HumanName from '../../utils/humanname/humanname'
 
 import './markethistory.css'
 
@@ -149,7 +151,7 @@ class MarketHistory extends Component {
 
   render() {
     var { loading, orders, max_order } = this.state
-    var { currencies } = this.props
+    var { currencies, drizzle } = this.props
 
     var offers_table = null
     var background_item = null
@@ -174,6 +176,11 @@ class MarketHistory extends Component {
                 backgroundRepeat: `no-repeat`
               }
               var type = item["type"] === "BUY" ? (<span className="green MarketHistory-type">BUY</span>) : (<span className="red MarketHistory-type">SELL</span>)
+              var participants = (<div className="MarketHistory-participants">
+                                    <div className="MarketHistory-participant"><HumanName drizzle={drizzle} icon_only address={item["taker"]} /></div>
+                                    <div className="MarketHistory-arrow"><Icon size="large" name="long arrow alternate right" /></div>
+                                    <div className="MarketHistory-participant"><HumanName drizzle={drizzle} icon_only address={item["maker"]} /></div>
+                                  </div>)
               return (
                 <Table.Row key={index} style={style}>
                   <Table.Cell>
@@ -182,6 +189,10 @@ class MarketHistory extends Component {
 
                   <Table.Cell>
                     <div className='MarketHistory-table-entry'>{item["timestamp"]}</div>
+                  </Table.Cell>
+
+                  <Table.Cell>
+                    <div className='MarketHistory-table-entry'>{participants}</div>
                   </Table.Cell>
 
                   <Table.Cell>
@@ -208,6 +219,7 @@ class MarketHistory extends Component {
             <Table.Row>
               <Table.HeaderCell className='MarketHistory-table-header' textAlign='left'>Type</Table.HeaderCell>
               <Table.HeaderCell className='MarketHistory-table-header' textAlign='left'>Time</Table.HeaderCell>
+              <Table.HeaderCell className='MarketHistory-table-header' textAlign='center'>Participants</Table.HeaderCell>
               <Table.HeaderCell className='MarketHistory-table-header' textAlign='left'>Price</Table.HeaderCell>
               <Table.HeaderCell className='MarketHistory-table-header' textAlign='left'>{currencies[0]}</Table.HeaderCell>
               <Table.HeaderCell className='MarketHistory-table-header' textAlign='left'>{currencies[1]}</Table.HeaderCell>
