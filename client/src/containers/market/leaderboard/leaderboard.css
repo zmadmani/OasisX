@@ -1,0 +1,71 @@
+.Leaderboard {
+	background-color: #152128;
+	width: 100%;
+	height: 300px;
+	overflow-y: auto;
+}
+
+.Leaderboard-headers {
+	font-size: 1.15rem;
+	font-weight: 600;
+	line-height: 2rem;
+}
+
+.Leaderboard-button {
+	margin-right: 1rem !important;
+}
+
+.Leaderboard-table-entry {
+	color: #9aa3ad !important;
+}
+
+.Leaderboard-table-header {
+	color: #9aa3ad !important;
+	background-color: #0b1216 !important;
+	font-size: 1.2rem;
+}
+
+#Leaderboard-empty {
+	color: #9aa3ad !important;
+	opacity: 0.5;
+	font-size: 1.15rem;
+	font-weight: 600;
+	text-align: center;
+	width: 100%;
+	height: 100px;
+	padding-top: 25px;
+}
+
+.Leaderboard-type {
+	font-weight: 600;
+}
+
+.Leaderboard-arrow {
+	max-width: 30%;
+	padding: 0rem 0.5rem;
+	float: left;
+}
+
+.Leaderboard-maker {
+	max-width: 30%;
+	float: left;
+	margin: auto 0;
+}
+
+.Leaderboard-taker {
+	max-width: 30%;
+	float: left;
+	margin: auto 0;
+}
+
+.ui.table thead tr:first-child > th {
+     position: sticky !important;
+     top: 0;
+     z-index: 2;
+}
+
+@media (max-width: 768px) {
+	.Leaderboard-arrow {
+		padding: 0rem 0.25rem;
+	}
+}

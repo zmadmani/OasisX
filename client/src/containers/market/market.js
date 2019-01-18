@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Grid, Tab } from 'semantic-ui-react'
+import { Grid, Tab, Responsive } from 'semantic-ui-react'
 
 // import Chart from './chart/chart'
 import OrderList from './orderlist/orderlist'
@@ -8,6 +8,7 @@ import MarketOrder from './marketorder/marketorder'
 import MyOrders from './myorders/myorders'
 import Stats from './stats/stats'
 import MarketHistory from './markethistory/markethistory'
+import Leaderboard from './leaderboard/leaderboard'
 import MyHistory from './myhistory/myhistory'
 import SideBar from './sidebar/sidebar'
 
@@ -94,6 +95,7 @@ class Market extends Component {
       { menuItem: 'Open Orders', render: () => <Tab.Pane className="Market-tab-pane"><MyOrders currencies={currencies} drizzle={drizzle} drizzleState={drizzleState} /></Tab.Pane> },
       { menuItem: 'My History', render: () => <Tab.Pane className="Market-tab-pane"><MyHistory currencies={currencies} drizzle={drizzle} drizzleState={drizzleState} /></Tab.Pane> },
       { menuItem: 'Market History', render: () => <Tab.Pane className="Market-tab-pane"><MarketHistory currencies={currencies} drizzle={drizzle} drizzleState={drizzleState} /></Tab.Pane> },
+      { menuItem: 'Leaderboard', render: () => <Tab.Pane className="Market-tab-pane"><Leaderboard currencies={currencies} drizzle={drizzle} drizzleState={drizzleState} /></Tab.Pane> },
     ]
 
     const buy_panes = [
@@ -116,7 +118,12 @@ class Market extends Component {
  
         <div className="Market-headers">Activity Center</div>
         <div id="Market-activity-pane">
-          <Tab menu={{ fluid: true, tabular: true, attached: 'top' }} panes={activity_panes} />
+          <Responsive minWidth={Responsive.onlyTablet.minWidth}>
+            <Tab menu={{ fluid: true, tabular: true, attached: 'top' }} panes={activity_panes} />
+          </Responsive>
+          <Responsive maxWidth={Responsive.onlyTablet.minWidth}>
+            <Tab menu={{ fluid: true, tabular: true, attached: 'top' }} panes={activity_panes.slice(0,3)} />
+          </Responsive>
         </div>
         
         <Grid divided id="Market-orderlists">
