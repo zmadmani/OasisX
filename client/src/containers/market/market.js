@@ -95,7 +95,7 @@ class Market extends Component {
       { menuItem: 'Open Orders', render: () => <Tab.Pane className="Market-tab-pane"><MyOrders currencies={currencies} drizzle={drizzle} drizzleState={drizzleState} /></Tab.Pane> },
       { menuItem: 'My History', render: () => <Tab.Pane className="Market-tab-pane"><MyHistory currencies={currencies} drizzle={drizzle} drizzleState={drizzleState} /></Tab.Pane> },
       { menuItem: 'Market History', render: () => <Tab.Pane className="Market-tab-pane"><MarketHistory currencies={currencies} drizzle={drizzle} drizzleState={drizzleState} /></Tab.Pane> },
-      { menuItem: 'Leaderboard', render: () => <Tab.Pane className="Market-tab-pane"><Leaderboard currencies={currencies} drizzle={drizzle} drizzleState={drizzleState} /></Tab.Pane> },
+      { menuItem: '24HR Leaderboard', render: () => <Tab.Pane className="Market-tab-pane"><Leaderboard currencies={currencies} drizzle={drizzle} drizzleState={drizzleState} /></Tab.Pane> },
     ]
 
     const buy_panes = [
