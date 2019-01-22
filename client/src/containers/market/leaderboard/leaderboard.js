@@ -110,6 +110,10 @@ class Leaderboard extends Component {
       var buy_amt = order["take_amt"].toString()
       var offer = this.getPrice(pay_amt, buy_amt, type)
       
+      if(!offer) {
+        continue
+      }
+
       // Assemble all necessary vars
       var maker = order["maker"]
       var taker = order["taker"]
@@ -140,6 +144,8 @@ class Leaderboard extends Component {
 
       // Add to buyer and seller data dict
       var profile_data = profiles[buyer]
+      console.log(profile_data["amount_1_given"])
+      console.log(order)
       profile_data["amount_1_given"] = profile_data["amount_1_given"].add(order["curr_1"])
       profile_data["amount_0_received"] = profile_data["amount_0_received"].add(order["curr_0"])
       profiles[buyer] = profile_data
