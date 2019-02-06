@@ -12,62 +12,36 @@ import Infobar from '../infobar/infobar'
 class App extends Component {
   constructor(props) {
     super(props)
-
     this.state = {
-      loading: true,
-      drizzleState: null
     }
   }
 
   componentDidMount() {
-    const { drizzle } = this.props
-
-    // Subscribe to changes in the store and assign to unsubscribe for later release
-    this.unsubscribe = drizzle.store.subscribe(() => {
-
-      // Every time the store updates we update the state and pass it to all the children
-      const drizzleState = drizzle.store.getState()
-
-      // If the entire setup is initialized then we update local component states
-      if(drizzleState.drizzleStatus.initialized) {
-        this.setState({ loading: false, drizzleState })
-      }
-    })
-  }
-
-  componentWillUnmount() {
-    this.unsubscribe()
   }
 
   render() {
-    var { loading, drizzleState } = this.state
-    var { drizzle } = this.props
+    var { options } = this.props
 
-    if(loading) {
-      return <div id="App-loading-screen">Connecting to Ethereum...</div>
-    }
-    else {
-      return (
-        <div className="App">
-          <HashRouter>
-            <div>
-              <Navbar drizzle={drizzle} drizzleState={ drizzleState } />
-              <div id="App_market_container">
-                  <Switch>
-                    <Route exact path='/' render={() => <Home drizzle={drizzle} drizzleState={ drizzleState } />} />
-                    <Route exact path='/WETH_DAI' render={() => <Market key={'WETH_DAI'} drizzle={drizzle} drizzleState={ drizzleState } pair={'WETH_DAI'} />} />
-                    <Route exact path='/MKR_WETH' render={() => <Market key={'MKR_WETH'} drizzle={drizzle} drizzleState={ drizzleState } pair={'MKR_WETH'} />} />
-                    <Route exact path='/MKR_DAI' render={() => <Market  key={'MKR_DAI'} drizzle={drizzle} drizzleState={ drizzleState } pair={'MKR_DAI'} />} />
-                  </Switch>
-              </div>
+    return (
+      <div className="App">
+        <HashRouter>
+          <div>
+            <Navbar options={options} />
+            <div id="App_market_container">
+                <Switch>
+                  <Route exact path='/' render={() => <Home />} />
+                  <Route exact path='/WETH_DAI' render={() => <Market key={'WETH_DAI'} options={options} currencies={['WETH', 'DAI']} />} />
+                  <Route exact path='/MKR_WETH' render={() => <Market key={'MKR_WETH'} options={options} currencies={['MKR', 'WETH']} />} />
+                  <Route exact path='/MKR_DAI' render={() => <Market  key={'MKR_DAI'} options={options} currencies={['MKR', 'DAI']} />} />
+                </Switch>
             </div>
-          </HashRouter>
-          <Responsive minWidth={Responsive.onlyTablet.minWidth}>
-            <Infobar drizzle={drizzle} drizzleState={ drizzleState } padded={true} />
-          </Responsive>
-        </div>
-      );
-    }
+          </div>
+        </HashRouter>
+        <Responsive minWidth={Responsive.onlyTablet.minWidth}>
+          <Infobar padded={true} options={options} />
+        </Responsive>
+      </div>
+    );
   }
 }
 

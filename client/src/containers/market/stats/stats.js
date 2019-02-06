@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import { ethers } from 'ethers';
 import { Grid, List } from 'semantic-ui-react'
 import Chart from './chart/chart'
 
@@ -8,53 +9,13 @@ class Stats extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      loading: true,
-      orders: [],
-      stats: {
-        num_users: "...",
-        num_buys: "...",
-        num_sells: "...",
-        buy_volume: "...",
-        sell_volume: "...",
-        last_price: "...",
-        last_type: "BUY"
-      },
-      subsciption: null
     }
 
     this.buildStat = this.buildStat.bind(this)
   }
 
-  async componentDidMount() {
-    this.setState({loading: true})
-    var orders = await this.getPastOrders()
-    this.setState({ orders }, this.updateStats)
-    var subscription = await this.subscribeToEvents()
-    this.setState({ subscription })
-  }
-
-  componentWillUnmount() {
-    if(this.state.subscription) {
-      this.state.subscription.unsubscribe()
-    }
-  }
-
   shouldComponentUpdate(nextProps, nextState) {
-    if(this.are_stats_updated(this.state.stats, nextState.stats)) {
-      return true
-    } else {
-      return false
-    }
-  }
-
-  are_stats_updated(old_stats, new_stats) {
-    if(old_stats["num_users"] !== new_stats["num_users"] ||
-      old_stats["num_buys"] !== new_stats["num_buys"] ||
-      old_stats["num_sells"] !== new_stats["num_sells"] ||
-      old_stats["buy_volume"] !== new_stats["buy_volume"] ||
-      old_stats["sell_volume"] !== new_stats["sell_volume"] ||
-      old_stats["last_price"] !== new_stats["last_price"] ||
-      old_stats["last_type"] !== new_stats["last_type"] ) {
+    if(this.props.orders.length !== nextProps.orders.length) {
       return true
     } else {
       return false
@@ -62,18 +23,31 @@ class Stats extends Component {
   }
 
   updateStats() {
+    var users = {}
+    var { orders } = this.props
+
+    if(orders.length === 0) {
+      return {
+        num_users: '...',
+        num_buys: '...',
+        num_sells: '...',
+        buy_volume: '...',
+        sell_volume: '...',
+        last_price: '...',
+        last_type: '...'
+      }
+    }
+
     var new_stats = {
       num_users: 0,
       num_buys: 0,
       num_sells: 0,
-      buy_volume: 0,
-      sell_volume: 0,
+      buy_volume: 0.0,
+      sell_volume: 0.0,
       last_price: 0,
       last_type: "BUY"
     }
 
-    var users = {}
-    var orders = this.state.orders
     for(var i = 0; i < orders.length; i++) {
       var order = orders[i]
 
@@ -90,12 +64,13 @@ class Stats extends Component {
       }
 
       // Check if order is buy or sell and add the necessary info
+      var curr_1 = parseFloat(ethers.utils.formatUnits(order["curr_1"].toString(), "ether"))
       if(order["type"] === "BUY") {
         new_stats["num_buys"] += 1
-        new_stats["buy_volume"] += order["curr_2"]
+        new_stats["buy_volume"] += curr_1
       } else if(order["type"] === "SELL") {
         new_stats["num_sells"] += 1
-        new_stats["sell_volume"] += order["curr_2"]
+        new_stats["sell_volume"] += curr_1
       }
     }
 
@@ -112,35 +87,7 @@ class Stats extends Component {
     }
 
     document.title = new_stats["last_price"] + " " + symbol + " " + this.props.currencies[1] + "/" + this.props.currencies[0]
-    this.setState({ stats: new_stats, loading: false })
-  }
-
-  async subscribeToEvents() {
-    var { currencies, drizzle } = this.props
-    var { Market } = drizzle.contracts
-    
-    var web3 = drizzle.web3
-    var latestBlock = await web3.eth.getBlockNumber()
-    
-    var curr_1_addr = drizzle.contracts[currencies[0]].address
-    var curr_2_addr = drizzle.contracts[currencies[1]].address
-    
-    const hashKey1 = web3.utils.soliditySha3(curr_1_addr, curr_2_addr)
-    const hashKey2 = web3.utils.soliditySha3(curr_2_addr, curr_1_addr)
-    
-    const market = new web3.eth.Contract(Market.abi, Market.address)
-    var subscription = market.events.LogTake({
-      filter: { pair: [hashKey1, hashKey2] },
-      fromBlock: latestBlock
-    }).on('data', function(event) {
-      var orders = this.eventsToOrders([event])
-      this.setState({ orders: orders.concat(this.state.orders) }, this.updateStats)
-    }.bind(this))
-
-    return subscription
-  }
-
-  componentWillMount() {
+    return new_stats
   }
 
   numberWithCommas(x) {
@@ -149,111 +96,12 @@ class Stats extends Component {
       return parts.join(".");
   }
 
-  getType(order) {
-    var { currencies, drizzle } = this.props
-
-    var curr_1_addr = drizzle.contracts[currencies[0]].address
-    var curr_2_addr = drizzle.contracts[currencies[1]].address
-
-    var buy_addr = order["buy_gem"]
-    var pay_addr = order["pay_gem"]
-
-    if(buy_addr === curr_1_addr && pay_addr === curr_2_addr) {
-      return "SELL"
-    } else if(buy_addr === curr_2_addr && pay_addr === curr_1_addr) {
-      return "BUY"
-    } else {
-      return null
-    }
-  }
-
-  getPrice(pay_amt, buy_amt, type) {
-    var web3 = this.props.drizzle.web3
-    pay_amt = web3.utils.toBN(pay_amt)
-    buy_amt = web3.utils.toBN(buy_amt)
-
-    if(pay_amt.lte(web3.utils.toBN("1000")) || buy_amt.lte(web3.utils.toBN("1000"))) {
-      return false
-    }
-
-    var one = web3.utils.toBN(web3.utils.toWei("1", "ether"))
-
-    var price = 0
-    if(type === "BUY") {
-      price = parseFloat(web3.utils.fromWei(one.mul(pay_amt).div(buy_amt).toString(), 'ether'))
-      // price = Math.round(pay_amt / buy_amt * 1000) / 1000
-      buy_amt = parseFloat(web3.utils.fromWei(buy_amt.toString(), 'ether'))
-      pay_amt = parseFloat(web3.utils.fromWei(pay_amt.toString(), 'ether'))
-      return [price, buy_amt, pay_amt]
-    } else {
-      price = parseFloat(web3.utils.fromWei(one.mul(buy_amt).div(pay_amt).toString(), 'ether'))
-      // price = Math.round(buy_amt / pay_amt * 1000) / 1000
-      buy_amt = parseFloat(web3.utils.fromWei(buy_amt.toString(), 'ether'))
-      pay_amt = parseFloat(web3.utils.fromWei(pay_amt.toString(), 'ether'))
-      return [price, pay_amt, buy_amt]
-    }
-  }
-
-  eventsToOrders(events) {
-    var orders = []
-    for(var i = 0; i < events.length; i++) {
-      var order = events[i].returnValues
-      var type = this.getType(order)
-      var pay_amt = order["give_amt"].toString()
-      var buy_amt = order["take_amt"].toString()
-      var offer = this.getPrice(pay_amt, buy_amt, type)
-      if(offer) {
-        var timestamp = new Date(order["timestamp"] * 1000)
-        timestamp = timestamp.toLocaleTimeString() + " " + timestamp.toLocaleDateString()
-        order = {
-          "raw_timestamp": order["timestamp"] * 1000,
-          "timestamp": timestamp,
-          "type": type,
-          "price": offer[0],
-          "curr_1": offer[1],
-          "curr_2": offer[2],
-          "taker": order["taker"],
-          "maker": order["maker"]
-        }
-        orders.push(order)
-      }
-    }
-    orders.reverse()
-    return orders
-  }
-
-  async getPastOrders() {
-    var { currencies, drizzle } = this.props
-    var { Market } = drizzle.contracts
-    var web3 = drizzle.web3
-    var latestBlock = await web3.eth.getBlockNumber()
-
-    var curr_1_addr = drizzle.contracts[currencies[0]].address
-    var curr_2_addr = drizzle.contracts[currencies[1]].address
-    const hashKey1 = web3.utils.soliditySha3(curr_1_addr, curr_2_addr)
-    const hashKey2 = web3.utils.soliditySha3(curr_2_addr, curr_1_addr)
-
-    const market = new web3.eth.Contract(Market.abi, Market.address)
-    var events = await market.getPastEvents("LogTake", {
-      filter: { pair: [hashKey1, hashKey2] },
-      fromBlock: latestBlock - 5760,
-      toBlock: 'latest'
-    })
-
-    events.sort(function(first, second) {
-      return first.returnValues.timestamp - second.returnValues.timestamp
-    })
-
-    var orders = this.eventsToOrders(events)
-    return orders
-  }
-
-  buildStat(key) {
-    if(this.state.stats[key] === "...") {
-      return <span className="loading_value">{this.state.stats[key]}</span>
+  buildStat(key, raw_stats) {
+    if(raw_stats[key] === "...") {
+      return <span className="loading_value">{raw_stats[key]}</span>
     }
     var color = null
-    var value = this.numberWithCommas(this.state.stats[key])
+    var value = this.numberWithCommas(raw_stats[key])
     if(key === "buy_volume" || key === "sell_volume") {
       color = key === "buy_volume" ? "important-green" : "important-red"
       value = <span className={color + " value"}>{value.toString()} <span className="sub_value">{this.props.currencies[1]}</span></span>
@@ -265,7 +113,7 @@ class Stats extends Component {
     }
 
     if(key === "last_price") {
-      color = this.state.stats["last_type"] === "BUY" ? "important-green" : "important-red"
+      color = raw_stats["last_type"] === "BUY" ? "important-green" : "important-red"
       value = <span className={color + " value"}>{value.toString()} <span className="sub_value">{this.props.currencies[1]} / {this.props.currencies[0]}</span></span>
     }
 
@@ -273,14 +121,14 @@ class Stats extends Component {
   }
 
   render() {
-    var { orders } = this.state
-    var { currencies } = this.props
+    var { currencies, orders } = this.props
 
     var keys = ["num_users", "num_buys", "num_sells", "buy_volume", "sell_volume", "last_price"]
     var statistics = {}
+    var raw_stats = this.updateStats()
     for(var i = 0; i < keys.length; i++) {
       var key = keys[i]
-      statistics[key] = this.buildStat(key)
+      statistics[key] = this.buildStat(key, raw_stats)
     }
 
     var chart = <div id="Stats-chart"><Chart orders={orders} currencies={currencies} /></div>

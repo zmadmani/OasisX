@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import { ethers } from 'ethers';
 
 import './humanname.css'
 
@@ -16,15 +17,13 @@ class HumanName extends Component {
   }
 
   getName(address) {
-    var web3 = this.props.drizzle.web3
-    var two_hundred = web3.utils.toBN("200")
+    var two_hundred = ethers.utils.bigNumberify("200")
 
-    address = address.substr(2)
-    var portion_1 = web3.utils.hexToNumberString(address.substr(0, 20))
-    var portion_2 = web3.utils.hexToNumberString(address.substr(20, 40))
+    var portion_1 = ethers.utils.bigNumberify(address.substr(0, 22)).toString()
+    var portion_2 = ethers.utils.bigNumberify("0x" + address.substr(22, 40)).toString()
     
-    portion_1 = web3.utils.toBN(portion_1).mod(two_hundred).toString()
-    portion_2 = web3.utils.toBN(portion_2).mod(two_hundred).toString()
+    portion_1 = ethers.utils.bigNumberify(portion_1).mod(two_hundred).toString()
+    portion_2 = ethers.utils.bigNumberify(portion_2).mod(two_hundred).toString()
 
     if(portion_1 !== 0 && portion_2 !== 0) {
       var initials = first_names[portion_1][0] + last_names[portion_2][0]
@@ -35,18 +34,20 @@ class HumanName extends Component {
   }
 
   getColor(address) {
-    var web3 = this.props.drizzle.web3
-    var num_colors = web3.utils.toBN("13")
+    var num_colors = ethers.utils.bigNumberify("13")
 
-    address = address.substr(2)
-    var long_num = web3.utils.hexToNumberString(address)
+    var long_num = ethers.utils.bigNumberify(address).toString()
 
-    var color_idx = web3.utils.toBN(long_num).mod(num_colors).toString()
+    var color_idx = ethers.utils.bigNumberify(long_num).mod(num_colors).toString()
     return [colors[color_idx], fontColors[color_idx]]
   }
 
   render() {
     var { address, icon_only, inactive_link } = this.props
+
+    if(!address) {
+      return (<div className="HumanName-circle"></div>)
+    }
 
     var [ name, initials ] = this.getName(address)
     var [ backgroundColor, fontColor ] = this.getColor(address)

@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import { ethers } from 'ethers';
 import { Header, Table, Checkbox, Icon } from 'semantic-ui-react'
 import './infobar.css'
 
@@ -26,7 +27,8 @@ class Infobar extends Component {
           balance: 0,
           approved: 0
         }
-      }
+      },
+      account: ""
     }
 
     this.updateInfo = this.updateInfo.bind(this)
@@ -37,55 +39,52 @@ class Infobar extends Component {
   }
 
   async updateInfo() {
-    const { drizzle, drizzleState } = this.props
-    let account = drizzleState.accounts[0]
-    let market_address = drizzle.contracts.Market.address
+    const { options } = this.props
+    let account = await options.signer.getAddress()
+    let market_address = options.contracts.Market.address
+
+    const weth_balance = await options.contracts.WETH.balanceOf(account)
+    const dai_balance = await options.contracts.DAI.balanceOf(account)
+    const mkr_balance = await options.contracts.MKR.balanceOf(account)
     
-    const weth_balance = await drizzle.contracts.WETH.methods.balanceOf(account).call()
-    const dai_balance = await drizzle.contracts.DAI.methods.balanceOf(account).call()
-    const mkr_balance = await drizzle.contracts.MKR.methods.balanceOf(account).call()
+    const weth_approval = await options.contracts.WETH.allowance(account, market_address)
+    const dai_approval = await options.contracts.DAI.allowance(account, market_address)
+    const mkr_approval = await options.contracts.MKR.allowance(account, market_address)
     
-    const weth_approval = await drizzle.contracts.WETH.methods.allowance(account, market_address).call()
-    const dai_approval = await drizzle.contracts.DAI.methods.allowance(account, market_address).call()
-    const mkr_approval = await drizzle.contracts.MKR.methods.allowance(account, market_address).call()
-    
-    var eth_balance = drizzleState.accountBalances[account]
+    var eth_balance = await options.provider.getBalance(account)
 
     var currencies = {
       "WETH": {
-        balance: weth_balance,
-        approved: weth_approval
+        balance: weth_balance.toString(),
+        approved: weth_approval.toString()
       },
       "DAI": {
-        balance: dai_balance,
-        approved: dai_approval
+        balance: dai_balance.toString(),
+        approved: dai_approval.toString()
       },
       "MKR": {
-        balance: mkr_balance,
-        approved: mkr_approval
+        balance: mkr_balance.toString(),
+        approved: mkr_approval.toString()
       },
       "ETH": {
-        balance: eth_balance,
+        balance: eth_balance.toString(),
         approved: "115792089237316195423570985008687907853269984665640564039457584007913129639935"
       }
     }
 
-    this.setState({ currencies })
+    this.setState({ currencies, account })
 
-    setTimeout(this.updateInfo, 5000)
+    setTimeout(this.updateInfo, 3000)
   }
 
-  approveCurrencyForAmount(currency, amount) {
-    var { drizzle, drizzleState } = this.props
-    var account = drizzleState.accounts[0]
-    let market_address = drizzle.contracts.Market.address
-    var web3 = drizzle.web3
+  async approveCurrencyForAmount(currency, amount) {
+    var { options } = this.props
+    
+    let market_address = options.contracts.Market.address
 
-    if(currency in drizzle.contracts) {
-      var currency_contract = drizzle.contracts[currency]
-      
-      var approve = currency_contract.methods.approve
-      approve.cacheSend(market_address, amount, {from: account, gasPrice: web3.utils.toWei('5', 'gwei') })
+    if(currency in options.contracts) {
+      var contract = options.contracts[currency]
+      await contract.approve(market_address, amount)
     }
   }
 
@@ -109,7 +108,7 @@ class Infobar extends Component {
   getUIBalance(raw_balance) {
     let UI_balance = raw_balance
     if(raw_balance != null) {
-      UI_balance = Math.round(this.props.drizzle.web3.utils.fromWei(raw_balance.toString(), 'ether') * 1000) / 1000
+      UI_balance = Math.round(ethers.utils.formatUnits(raw_balance.toString(), 'ether') * 1000) / 1000
     } else {
       UI_balance = "Error..."
     }
@@ -117,10 +116,9 @@ class Infobar extends Component {
   }
 
   getUIAllowance(raw_balance, raw_allowance) {
-    const web3 = this.props.drizzle.web3
     let UI_allowance = false
-    raw_allowance = web3.utils.toBN(raw_allowance)
-    let balance = web3.utils.toBN(raw_balance)
+    raw_allowance = ethers.utils.bigNumberify(raw_allowance)
+    let balance = ethers.utils.bigNumberify(raw_balance)
     if(raw_allowance.gte(balance)) {
       UI_allowance = true
     } else {
@@ -130,9 +128,8 @@ class Infobar extends Component {
   }
 
   render() {
-    const { currencies } = this.state
-    const { padded, closeSidebar, drizzle, drizzleState } = this.props
-    let account = drizzleState.accounts[0]
+    const { currencies, account } = this.state
+    const { padded, closeSidebar, options } = this.props
 
     const vals = Object.keys(currencies).map((key) => {
       var obj = {}
@@ -148,7 +145,6 @@ class Infobar extends Component {
       return obj
     })
 
-    var ui_account = account
     var x_icon = <Icon name="close" id="Infobar-x" size="large" onClick={closeSidebar} />
     if(padded) {
       x_icon = null
@@ -156,7 +152,7 @@ class Infobar extends Component {
 
     return (
       <div id='Infobar'>
-        <div className='Infobar-header'><HumanName drizzle={drizzle} drizzleState={drizzleState} address={ui_account} />{x_icon}</div>
+        <div className='Infobar-header'><HumanName address={account} />{x_icon}</div>
         <Table basic='very' padded={"very"} striped unstackable id="Infobar-table">
           <Table.Header id="Infobar-table-header">
             <Table.Row>
@@ -187,7 +183,7 @@ class Infobar extends Component {
           </Table.Body>
         </Table>
 
-        <WrapStation drizzle={drizzle} drizzleState={drizzleState} weth_balance={currencies["WETH"]["balance"]} eth_balance={currencies["ETH"]["balance"]} />
+        <WrapStation options={options} weth_balance={currencies["WETH"]["balance"]} eth_balance={currencies["ETH"]["balance"]} />
       </div>
     )
   }

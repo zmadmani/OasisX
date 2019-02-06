@@ -24,7 +24,7 @@ class Navbar extends Component {
   }
 
   render() {
-    const { children, drizzle, drizzleState } = this.props
+    const { children, options } = this.props
     const { activeItem, visible } = this.state
 
     // var title = "OasisX"
@@ -88,7 +88,7 @@ class Navbar extends Component {
             </Menu.Menu>
           </Menu>
           <Sidebar as={Segment} animation="overlay" direction="right" visible={visible} id="Navbar-Side_info_bar">
-            <Infobar drizzle={drizzle} drizzleState={ drizzleState } padded={false} closeSidebar={this.toggleVisible} />
+            <Infobar options={options} padded={false} closeSidebar={this.toggleVisible} />
           </Sidebar>
           { children }
         </Responsive>

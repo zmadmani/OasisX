@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import { ethers } from 'ethers';
 import { Charts, ChartContainer, ChartRow, YAxis, LineChart, BarChart, styler, Resizable } from "react-timeseries-charts";
 import { TimeSeries, Index } from "pondjs";
 
@@ -57,15 +58,16 @@ class Chart extends Component {
       var volume_points = []
       for(var i = 0; i < nextProps.orders.length; i++) {
         var item = nextProps.orders[i]
+        var vol = parseFloat(ethers.utils.formatUnits(item["curr_1"].toString(), 'ether'))
         if(i > 0) {
           var last_item = nextProps.orders[i-1]
           if(item["raw_timestamp"] === last_item["raw_timestamp"]) {
-            volume_points[volume_points.length-1][1] += item["curr_2"]
+            volume_points[volume_points.length-1][1] += vol
           } else {
-            volume_points.push([Index.getIndexString("1s", new Date(item["raw_timestamp"])), item["curr_2"]])
+            volume_points.push([Index.getIndexString("1s", new Date(item["raw_timestamp"])), vol])
           }
         } else {
-          volume_points.push([Index.getIndexString("1s", new Date(item["raw_timestamp"])), item["curr_2"]])
+          volume_points.push([Index.getIndexString("1s", new Date(item["raw_timestamp"])), vol])
         }
       }
 
@@ -123,6 +125,7 @@ class Chart extends Component {
       var max_val = chart_data.crop(timerange).max("price")
       var padding = (max_val - min_val)*0.1
       var max_volume = volume_data.crop(timerange).max("volume")
+      var volume_padding = (max_volume)*0.1
       chart = (
         <Resizable>
           <ChartContainer 
@@ -201,7 +204,7 @@ class Chart extends Component {
                 id="amount" 
                 label={"Volume (" + currencies[1] + ")"} 
                 min={0}
-                max={max_volume} 
+                max={max_volume + volume_padding} 
                 hideAxisLine
                 showGrid
                 width="50" 

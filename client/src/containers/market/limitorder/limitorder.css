@@ -2,16 +2,18 @@
 	background-color: #152128;
 	width: 100%;
 	padding: 1.5rem;
-	min-height: 300px;
+	min-height: 600px;
 }
 
 .LimitOrder-headers {
-	font-size: 1.15rem;
+	font-size: 2rem;
 	font-weight: 600;
-	line-height: 2rem;
+	line-height: 3rem;
+	padding-bottom: 0.5rem;
 }
 
 .LimitOrder-button {
+	margin-top: 1rem !important;
 	margin-right: 1rem !important;
 }
 
@@ -22,7 +24,7 @@
 }
 
 .LimitOrder-amount-input {
-	padding: 0rem 0rem 0.5rem 0rem;
+	padding: 1rem 0rem 0.5rem 0rem;
 }
 
 .LimitOrder-color {
@@ -39,4 +41,12 @@
 
 .LimitOrder-currentPrice:hover {
 	color: white;
+}
+
+#LimitOrder-amount-header {
+	padding-top: 2rem;
+}
+
+#LimitOrder-price {
+	padding-bottom: 2rem;
 }

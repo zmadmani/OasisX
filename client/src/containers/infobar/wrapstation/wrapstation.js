@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import { ethers } from 'ethers';
 import { Input, Form, Button } from 'semantic-ui-react'
 
 import './wrapstation.css'
@@ -25,14 +26,14 @@ class WrapStation extends Component {
     var bignumbers = {}
     for(var i = 0; i <= 10; i++) {
       var key = i
-      bignumbers[key] = this.props.drizzle.web3.utils.toBN(key)
+      bignumbers[key] = ethers.utils.bigNumberify(key)
     }
 
     this.setState({ bignumbers })
   }
 
   handlePercentUpdate(name, value) {
-    var ui_value = this.props.drizzle.web3.utils.fromWei(value.toString(), 'ether')
+    var ui_value = ethers.utils.formatUnits(value.toString(), 'ether')
     if(name === "amount_wrap") {
       this.setState({ amount_wrap: value, ui_amount_wrap: ui_value })
     } else if(name === "amount_unwrap") {
@@ -46,7 +47,7 @@ class WrapStation extends Component {
     var internal_value = 0
     try{
       if(/\S/.test(value)) {
-        internal_value = this.props.drizzle.web3.utils.toWei(value.toString(), 'ether')
+        internal_value = ethers.utils.parseUnits(value.toString(), 'ether')
       }
     } catch (err) {
       console.log(err)
@@ -103,12 +104,10 @@ class WrapStation extends Component {
     this.setState({ loading, success, error, amount_wrap, amount_unwrap, ui_amount_wrap, ui_amount_unwrap })
   }
 
-  onWrap = () => {
+  onWrap = async () => {
     // Grab the wrap function from the contract instance and the account and amount we want to execute it with
-    const deposit = this.props.drizzle.contracts.WETH.methods.deposit
-    const account = this.props.drizzleState.accounts[0]
+    const deposit = this.props.options.contracts.WETH.deposit
     var amount = this.state.amount_wrap
-    var web3 = this.props.drizzle.web3
 
     // Need to check if the amount value is an empty string/undefined/null and that it's greater than 0
     if(amount && amount > 0) {
@@ -116,28 +115,34 @@ class WrapStation extends Component {
       loading[0] = true
       this.setState({ loading })
       console.log("SENDING " + amount + " TO WRAPPER...")
-      deposit().send({value: amount, from: account, gasPrice: web3.utils.toWei('5', 'gwei') })
-        .on('receipt', () => this.flashSuccess(0))
-        .on('error', () => this.flashError(0))
+      try {
+        var tx = await deposit({value: amount})
+        await tx.wait()
+        this.flashSuccess(0)
+      } catch (error) {
+        this.flashError(0)
+      }
     } else {
       console.log("Error: No amount chosen")
     }
   }
 
-  onUnwrap = () => {
-    const withdraw = this.props.drizzle.contracts.WETH.methods.withdraw
-    const account = this.props.drizzleState.accounts[0]
+  onUnwrap = async () => {
+    const withdraw = this.props.options.contracts.WETH.withdraw
     var amount = this.state.amount_unwrap
-    var web3 = this.props.drizzle.web3
 
     if(amount && amount > 0) {
       var { loading } = this.state
       loading[1] = true
       this.setState({ loading })
       console.log("SENDING " + amount + " TO UNWRAPPER...")
-      withdraw(amount.toString()).send({from: account, gasPrice: web3.utils.toWei('5', 'gwei') })
-        .on('receipt', () => this.flashSuccess(1))
-        .on('error', () => this.flashError(1))
+      try {
+        var tx = await withdraw(amount.toString())
+        await tx.wait()
+        this.flashSuccess(1)
+      } catch (error) {
+        this.flashError(1)
+      }
     } else {
       console.log("Error: No amount chosen")
     }
@@ -148,8 +153,8 @@ class WrapStation extends Component {
     var { ui_amount_wrap, ui_amount_unwrap, bignumbers, loading, success, error } = this.state
 
     // Convert to BigNumbers since they will have potential math done on them (risk of overflow/underflow)
-    eth_balance = this.props.drizzle.web3.utils.toBN(eth_balance)
-    weth_balance = this.props.drizzle.web3.utils.toBN(weth_balance)
+    eth_balance = ethers.utils.bigNumberify(eth_balance)
+    weth_balance = ethers.utils.bigNumberify(weth_balance)
 
     var button_text = ["WRAP", "UNWRAP"]
     for(var i = 0; i < button_text.length; i++) {

@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import { ethers } from 'ethers';
 import { Sidebar, Segment, Icon, Input, Form, Button, Loader } from 'semantic-ui-react'
 
 import HumanName from '../../utils/humanname/humanname'
@@ -37,14 +38,12 @@ class SideBar extends Component {
   }
 
   async updateInfo() {
-    var { drizzle, drizzleState, currencies } = this.props
+    var { account, currencies, options } = this.props
     if(this.state.visible && this.state.id) {
-      let account = drizzleState.accounts[0]
-
-      const currency_0_balance = await drizzle.contracts[currencies[0]].methods.balanceOf(account).call()
-      const currency_1_balance = await drizzle.contracts[currencies[1]].methods.balanceOf(account).call()
-      const info = await drizzle.contracts.Market.methods.getOffer(this.state.id).call()
-      const owner = await drizzle.contracts.Market.methods.getOwner(this.state.id).call()
+      const currency_0_balance = await options.contracts[currencies[0]].balanceOf(account)
+      const currency_1_balance = await options.contracts[currencies[1]].balanceOf(account)
+      const info = await options.contracts.Market.getOffer(this.state.id)
+      const owner = await options.contracts.Market.getOwner(this.state.id)
       this.setState({ currency_0_balance, currency_1_balance, info, owner })
     }
     setTimeout(this.updateInfo, 1000)
@@ -54,7 +53,7 @@ class SideBar extends Component {
     var bignumbers = {}
     for(var i = 0; i <= 10; i++) {
       var key = i
-      bignumbers[key] = this.props.drizzle.web3.utils.toBN(key)
+      bignumbers[key] = ethers.utils.bigNumberify(key)
     }
 
     this.setState({ bignumbers })
@@ -74,8 +73,8 @@ class SideBar extends Component {
     }
     if(nextProps.sidebar_info !== this.props.sidebar_info) {
       this.setState({ loading: true })
-      const info = await this.props.drizzle.contracts.Market.methods.getOffer(nextProps.sidebar_info["id"]).call()
-      const owner = await this.props.drizzle.contracts.Market.methods.getOwner(nextProps.sidebar_info["id"]).call()
+      const info = await this.props.options.contracts.Market.getOffer(nextProps.sidebar_info["id"])
+      const owner = await this.props.options.contracts.Market.getOwner(nextProps.sidebar_info["id"])
       this.setState({ id: nextProps.sidebar_info["id"], info, owner, amount: '0', ui_amount: '' })
       setTimeout(this.stopLoading, 150)
     }
@@ -94,10 +93,8 @@ class SideBar extends Component {
 
   // Most important function in the entire file since it actually interfaces
   // and edits the blockchain.
-  executeTrade = (will_receive) => {
-    var { drizzle, drizzleState, sidebar_info } = this.props
-    const account = drizzleState.accounts[0]
-    const web3 = drizzle.web3
+  executeTrade = async (will_receive) => {
+    var { sidebar_info } = this.props
 
     var id = sidebar_info["id"]
 
@@ -105,15 +102,18 @@ class SideBar extends Component {
     var inputs = {
       "id": id,
       "will_receive": will_receive.toString(),
-      "will_receive_wholenums": web3.utils.fromWei(will_receive.toString(), 'ether')
+      "will_receive_wholenums": ethers.utils.formatUnits(will_receive.toString(), 'ether')
     }
     console.log(inputs)
 
-    drizzle.contracts.Market.methods.buy(id, will_receive.toString()).send({from: account, gasPrice: web3.utils.toWei('5', 'gwei') })
-      .on('receipt', this.flashSuccess)
-      .on('error', this.flashError)
-
-    this.setState({ button_loading: true })
+    try {
+      var tx = await this.props.options.contracts.Market.buy(id, will_receive.toString())
+      this.setState({ button_loading: true })
+      await tx.wait()
+      this.flashSuccess()
+    } catch(error) {
+      this.flashError()
+    }
   }
 
   numberWithCommas(x) {
@@ -126,7 +126,7 @@ class SideBar extends Component {
     var internal_value = 0
     try{
       if(/\S/.test(value)) {
-        internal_value = this.props.drizzle.web3.utils.toWei(value.toString(), 'ether').toString()
+        internal_value = ethers.utils.parseUnits(value.toString(), 'ether').toString()
       }
     } catch (err) {
       console.log(err)
@@ -136,7 +136,7 @@ class SideBar extends Component {
   }
 
   handleAmountPercentageChange(value) {
-    var ui_value = this.props.drizzle.web3.utils.fromWei(value.toString(), 'ether')
+    var ui_value = ethers.utils.formatUnits(value.toString(), 'ether')
     this.setState({ amount: value.toString(), ui_amount: ui_value })
   }
 
@@ -172,31 +172,28 @@ class SideBar extends Component {
   }
 
   calcWillReceive() {
-    var { drizzle } = this.props
     var { amount } = this.state
-    const web3 = drizzle.web3
 
     // Don't forget that these are flipped from the actual smart contract docs since
     // WE are the counterparties so buy_amt/pay_amt is flipped from expected
-    var buy_amt = web3.utils.toBN(this.state.info[0])
-    var pay_amt = web3.utils.toBN(this.state.info[2])
+    var buy_amt = ethers.utils.bigNumberify(this.state.info[0])
+    var pay_amt = ethers.utils.bigNumberify(this.state.info[2])
 
-    let amount_bn = web3.utils.toBN(amount)
+    let amount_bn = ethers.utils.bigNumberify(amount)
     try {
       let will_receive = amount_bn.mul(buy_amt).div(pay_amt)
       return will_receive
     } catch(err) {
-      return web3.utils.toBN("0")
+      return ethers.utils.bigNumberify("0")
     }
   }
 
   getMaxTake() {
-    var { sidebar_info, drizzle } = this.props
+    var { sidebar_info } = this.props
     var { info, currency_0_balance, currency_1_balance } = this.state
-    const web3 = drizzle.web3
 
-    var pay_amt = web3.utils.toBN(info[2])
-    var balance = sidebar_info["type"] === "BUY" ? web3.utils.toBN(currency_0_balance) : web3.utils.toBN(currency_1_balance)
+    var pay_amt = ethers.utils.bigNumberify(info[2])
+    var balance = sidebar_info["type"] === "BUY" ? ethers.utils.bigNumberify(currency_0_balance) : ethers.utils.bigNumberify(currency_1_balance)
     if(balance.lt(pay_amt)) {
       return balance
     } else {
@@ -206,8 +203,7 @@ class SideBar extends Component {
 
   render() {
     var { visible, amount, ui_amount, currency_0_balance, currency_1_balance, bignumbers, loading, button_loading, button_error, button_success, owner } = this.state
-    var { currencies, toggleSidebar, sidebar_info, drizzle, drizzleState } = this.props
-    const web3 = this.props.drizzle.web3
+    var { currencies, toggleSidebar, sidebar_info } = this.props
 
     // Invert the type since the action do as a taker is the inverse of the action of the maker
     var action = sidebar_info["type"] === "BUY" ? "SELL" : "BUY"
@@ -239,24 +235,24 @@ class SideBar extends Component {
       "offered": 0,
       "max_take": this.getMaxTake(),
       "will_receive": this.calcWillReceive(),
-      "maker": owner ? <HumanName drizzle={drizzle} drizzleState={drizzleState} address={owner} /> : "Loading...",
+      "maker": owner ? <HumanName address={owner} /> : "Loading...",
     }
-    giving["ui_will_receive"] = Math.round(web3.utils.fromWei(giving["will_receive"].toString()) * 1000) / 1000
+    giving["ui_will_receive"] = Math.round(ethers.utils.formatUnits(giving["will_receive"].toString(), 'ether') * 1000) / 1000
 
     if(action === "BUY") {
       giving["currency"] = currencies[1]
       giving["receive_currency"] = currencies[0]
-      giving["balance"] = web3.utils.toBN(currency_1_balance)
-      giving["ui_balance"] = Math.round(web3.utils.fromWei(currency_1_balance.toString(), 'ether') * 1000) / 1000
-      giving["offered"] = web3.utils.toBN(updated_info["curr_1_amt"])
-      giving["ui_offered"] = Math.round(web3.utils.fromWei(updated_info["curr_1_amt"], 'ether') * 1000) / 1000
+      giving["balance"] = ethers.utils.bigNumberify(currency_1_balance)
+      giving["ui_balance"] = Math.round(ethers.utils.formatUnits(currency_1_balance.toString(), 'ether') * 1000) / 1000
+      giving["offered"] = ethers.utils.bigNumberify(updated_info["curr_1_amt"])
+      giving["ui_offered"] = Math.round(ethers.utils.formatUnits(updated_info["curr_1_amt"], 'ether') * 1000) / 1000
     } else {
       giving["currency"] = currencies[0]
       giving["receive_currency"] = currencies[1]
-      giving["balance"] = web3.utils.toBN(currency_0_balance)
-      giving["ui_balance"] = Math.round(web3.utils.fromWei(currency_0_balance.toString(), 'ether') * 1000) / 1000
-      giving["offered"] = web3.utils.toBN(updated_info["curr_0_amt"])
-      giving["ui_offered"] = Math.round(web3.utils.fromWei(updated_info["curr_0_amt"], 'ether') * 1000) / 1000
+      giving["balance"] = ethers.utils.bigNumberify(currency_0_balance)
+      giving["ui_balance"] = Math.round(ethers.utils.formatUnits(currency_0_balance.toString(), 'ether') * 1000) / 1000
+      giving["offered"] = ethers.utils.bigNumberify(updated_info["curr_0_amt"])
+      giving["ui_offered"] = Math.round(ethers.utils.formatUnits(updated_info["curr_0_amt"], 'ether') * 1000) / 1000
     }
 
     // Adjust the text on the button if an action or error just occurred
@@ -321,7 +317,7 @@ class SideBar extends Component {
             <div className="Side_bar-info-content">{giving["ui_will_receive"].toString() + " " + giving["receive_currency"]}</div>
           </div>
 
-          <Button className="BuySell-button" loading={button_loading} color={action === "BUY" ? "green" : "red"} disabled={button_text !== action + " " + currencies[0] || giving["will_receive"].lte(web3.utils.toBN("1000")) || web3.utils.toBN(amount).gt(giving["max_take"])} onClick={() => this.executeTrade(giving["will_receive"]) }>{button_text}</Button>
+          <Button className="BuySell-button" loading={button_loading} color={action === "BUY" ? "green" : "red"} disabled={button_text !== action + " " + currencies[0] || giving["will_receive"].lte(ethers.utils.bigNumberify("1000")) || ethers.utils.bigNumberify(amount).gt(giving["max_take"])} onClick={() => this.executeTrade(giving["will_receive"]) }>{button_text}</Button>
 
         </Sidebar>
       </div>

@@ -1,5 +1,7 @@
 import React, { Component } from 'react'
-import { Table } from 'semantic-ui-react'
+import { ethers } from 'ethers';
+import { Grid } from 'semantic-ui-react'
+import { AutoSizer, List } from 'react-virtualized'
 
 import HumanName from '../../utils/humanname/humanname'
 
@@ -16,13 +18,56 @@ class Leaderboard extends Component {
     }
   }
 
-  async componentDidMount() {
-    this.setState({loading: true})
-    var data = await this.getPastOrders()
-    this.setState({ data, loading: false })
+  componentDidMount() {
+    var new_data = this.eventsToData(this.props.orders)
+    var max_profit = 1
+    if(new_data.length > 0) {
+      max_profit = Math.max(Math.abs(new_data[0]['profit']), Math.abs(new_data[new_data.length-1]['profit']))
+    }
+    this.setState({ max_profit, data: new_data })
   }
 
   componentWillMount() {
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    if(this.props.orders.length !== nextProps.orders.length || this.state.data !== nextState.data || this.state.direction !== nextState.direction || this.state.column !== nextState.column) {
+      if(this.props.orders.length !== nextProps.orders.length) {
+        var new_data = this.eventsToData(nextProps.orders)
+        var max_profit = 1
+        if(new_data.length > 0) {
+          max_profit = new_data[0]['profit']
+        }
+        this.setState({ max_profit, data: new_data})
+      }
+      return true
+    } else {
+      return false
+    }
+  }
+
+  getPrice(pay_amt, buy_amt, type) {
+    pay_amt = ethers.utils.bigNumberify(pay_amt)
+    buy_amt = ethers.utils.bigNumberify(buy_amt)
+
+    if(pay_amt.lte(ethers.utils.bigNumberify("1000")) || buy_amt.lte(ethers.utils.bigNumberify("1000"))) {
+      return false
+    }
+
+    var one = ethers.utils.bigNumberify(ethers.utils.parseUnits("1", "ether"))
+
+    var price = 0
+    if(type === "BUY") {
+      price = ethers.utils.formatUnits(one.mul(pay_amt).div(buy_amt).toString(), 'ether')
+      // buy_amt = web3.utils.fromWei(buy_amt.toString(), 'ether')
+      // pay_amt = web3.utils.fromWei(pay_amt.toString(), 'ether')
+      return [price, buy_amt, pay_amt]
+    } else {
+      price = ethers.utils.formatUnits(one.mul(buy_amt).div(pay_amt).toString(), 'ether')
+      // buy_amt = web3.utils.fromWei(buy_amt.toString(), 'ether')
+      // pay_amt = web3.utils.fromWei(pay_amt.toString(), 'ether')
+      return [price, pay_amt, buy_amt]
+    }
   }
 
   numberWithCommas(x) {
@@ -31,62 +76,17 @@ class Leaderboard extends Component {
       return parts.join(".");
   }
 
-  getType(order) {
-    var { currencies, drizzle } = this.props
-
-    var curr_1_addr = drizzle.contracts[currencies[0]].address
-    var curr_2_addr = drizzle.contracts[currencies[1]].address
-
-    var buy_addr = order["buy_gem"]
-    var pay_addr = order["pay_gem"]
-
-    if(buy_addr === curr_1_addr && pay_addr === curr_2_addr) {
-      return "SELL"
-    } else if(buy_addr === curr_2_addr && pay_addr === curr_1_addr) {
-      return "BUY"
-    } else {
-      return null
-    }
-  }
-
-  getPrice(pay_amt, buy_amt, type) {
-    var web3 = this.props.drizzle.web3
-    pay_amt = web3.utils.toBN(pay_amt)
-    buy_amt = web3.utils.toBN(buy_amt)
-
-    if(pay_amt.lte(web3.utils.toBN("1000")) || buy_amt.lte(web3.utils.toBN("1000"))) {
-      return false
-    }
-
-    var one = web3.utils.toBN(web3.utils.toWei("1", "ether"))
-
-    var price = 0
-    if(type === "BUY") {
-      price = web3.utils.fromWei(one.mul(pay_amt).div(buy_amt).toString(), 'ether')
-      // buy_amt = web3.utils.fromWei(buy_amt.toString(), 'ether')
-      // pay_amt = web3.utils.fromWei(pay_amt.toString(), 'ether')
-      return [price, buy_amt, pay_amt]
-    } else {
-      price = web3.utils.fromWei(one.mul(buy_amt).div(pay_amt).toString(), 'ether')
-      // buy_amt = web3.utils.fromWei(buy_amt.toString(), 'ether')
-      // pay_amt = web3.utils.fromWei(pay_amt.toString(), 'ether')
-      return [price, pay_amt, buy_amt]
-    }
-  }
-
   newUserProfile(address) {
-    var web3 = this.props.drizzle.web3
     return {
           "address": address,
-          "amount_0_given": web3.utils.toBN("0"), // Amount weth sold
-          "amount_1_received": web3.utils.toBN("0"), // Amount dai received for sells
-          "amount_1_given": web3.utils.toBN("0"), // Amount dai given for buys
-          "amount_0_received": web3.utils.toBN("0"), // Amount weth bought
+          "amount_0_given": ethers.utils.bigNumberify("0"), // Amount weth sold
+          "amount_1_received": ethers.utils.bigNumberify("0"), // Amount dai received for sells
+          "amount_1_given": ethers.utils.bigNumberify("0"), // Amount dai given for buys
+          "amount_0_received": ethers.utils.bigNumberify("0"), // Amount weth bought
         }
   }
 
   getProfit(avg_buy_order, avg_sell_order) {
-    var web3 = this.props.drizzle.web3
     if(!avg_buy_order || !avg_sell_order) {
       return 0
     } else {
@@ -94,36 +94,22 @@ class Leaderboard extends Component {
       var amount_buy = avg_buy_order[1]
       var sell_price = avg_sell_order[0]
       var buy_price = avg_buy_order[0]
-      var min_amount = amount_buy.lt(amount_sell) ? web3.utils.fromWei(amount_buy.toString(), 'ether') : web3.utils.fromWei(amount_sell.toString(), 'ether')
+      var min_amount = amount_buy.lt(amount_sell) ? ethers.utils.formatUnits(amount_buy.toString(), 'ether') : ethers.utils.formatUnits(amount_sell.toString(), 'ether')
       var profit = Math.round(min_amount * (sell_price - buy_price) * 100) / 100
       return profit
     }
   }
 
   eventsToData(events) {
-    var web3 = this.props.drizzle.web3
     var profiles = {}
     for(var i = 0; i < events.length; i++) {
-      var order = events[i].returnValues
-      var type = this.getType(order)
-      var pay_amt = order["give_amt"].toString()
-      var buy_amt = order["take_amt"].toString()
-      var offer = this.getPrice(pay_amt, buy_amt, type)
-      
-      if(!offer) {
-        continue
-      }
+      var order = events[i]
 
       // Assemble all necessary vars
       var maker = order["maker"]
       var taker = order["taker"]
       var buyer = null
       var seller = null
-      order = {
-        "price": offer[0],
-        "curr_0": offer[1],
-        "curr_1": offer[2]
-      }
 
       // Add maker and taker into the dict if they are not present
       if(!(maker in profiles)) {
@@ -134,7 +120,7 @@ class Leaderboard extends Component {
       }
 
       // Set who the buyer and who the seller is
-      if(type === "BUY") {
+      if(order["type"] === "BUY") {
         buyer = taker
         seller = maker
       } else {
@@ -144,8 +130,6 @@ class Leaderboard extends Component {
 
       // Add to buyer and seller data dict
       var profile_data = profiles[buyer]
-      console.log(profile_data["amount_1_given"])
-      console.log(order)
       profile_data["amount_1_given"] = profile_data["amount_1_given"].add(order["curr_1"])
       profile_data["amount_0_received"] = profile_data["amount_0_received"].add(order["curr_0"])
       profiles[buyer] = profile_data
@@ -165,9 +149,9 @@ class Leaderboard extends Component {
       let profit = this.getProfit(avg_buy_order, avg_sell_order)
       var data_point = {
         "user": key,
-        "amount_0_bought": Math.round(web3.utils.fromWei(profiles[key]["amount_0_received"].toString(), 'ether') * 10) / 10,
+        "amount_0_bought": Math.round(ethers.utils.formatUnits(profiles[key]["amount_0_received"].toString(), 'ether') * 10) / 10,
         "avg_buy_price": avg_buy_price,
-        "amount_0_sold": Math.round(web3.utils.fromWei(profiles[key]["amount_0_given"].toString(), 'ether') * 10) / 10,
+        "amount_0_sold": Math.round(ethers.utils.formatUnits(profiles[key]["amount_0_given"].toString(), 'ether') * 10) / 10,
         "avg_sell_price": avg_sell_price,
         "profit": profit
       }
@@ -178,28 +162,6 @@ class Leaderboard extends Component {
       return second.profit - first.profit
     })
 
-    return data
-  }
-
-  async getPastOrders() {
-    var { currencies, drizzle } = this.props
-    var { Market } = drizzle.contracts
-    var web3 = drizzle.web3
-    var latestBlock = await web3.eth.getBlockNumber()
-
-    var curr_1_addr = drizzle.contracts[currencies[0]].address
-    var curr_2_addr = drizzle.contracts[currencies[1]].address
-    const hashKey1 = web3.utils.soliditySha3(curr_1_addr, curr_2_addr)
-    const hashKey2 = web3.utils.soliditySha3(curr_2_addr, curr_1_addr)
-
-    const market = new web3.eth.Contract(Market.abi, Market.address)
-    var events = await market.getPastEvents("LogTake", {
-      filter: { pair: [hashKey1, hashKey2] },
-      fromBlock: latestBlock - 5760,
-      toBlock: 'latest'
-    })
-
-    var data = this.eventsToData(events)
     return data
   }
 
@@ -229,73 +191,130 @@ class Leaderboard extends Component {
     }
   }
 
+  rowRenderer({index, key, style}) {
+    var { max_profit } = this.state
+    var { currencies, account } = this.props
+    var item = this.state.data[index]
+
+    var ratio = Math.abs(item["profit"])/max_profit * 100
+    var direction = "right"
+    var color_0 = "rgba(255, 0, 0, 0.2)"
+    var color_1 = "rgba(0,0,0,0)"
+    if(item["profit"] > 0) {
+      color_0 = "rgba(0, 255, 0, 0.1)"
+      color_1 = "rgba(0, 0, 0, 0)"
+    }
+
+    var color = index % 2 === 0 ? `#182026` : `#1c262c`
+
+    if(account === item["user"]) {
+      color =  `#3f4a50`
+    }
+
+    var custom_style = { 
+      backgroundColor: color,
+      backgroundImage: `linear-gradient(to ${direction}, ${color_0} , ${color_0}), linear-gradient(to ${direction}, ${color_1}, ${color_1})` ,
+      backgroundSize: `calc(${ratio}%) 100%`,
+      backgroundRepeat: `no-repeat`
+    }
+    style = Object.assign(custom_style, style)
+
+    var profit_color = 'grey'
+    if(item["profit"] > 0) {
+      profit_color = 'green'
+    } else if(item["profit"] < 0) {
+      profit_color = 'red'
+    }
+
+    return (
+      <div className="Leaderboard-table-entry" key={key} style={style}>
+        <Grid divided padded={true}>
+          <Grid.Column computer={4} tablet={6}>
+            <HumanName address={item["user"]} />
+          </Grid.Column>
+          <Grid.Column computer={3} tablet={2}>
+            <span>{item["amount_0_bought"] + " "}<span className="Leaderboard-subtext">{currencies[0]}</span></span>
+          </Grid.Column>
+          <Grid.Column computer={2} tablet={2}>
+            {item["avg_buy_price"]}
+          </Grid.Column>
+          <Grid.Column computer={3} tablet={2} textAlign='left'>
+            <span>{item["amount_0_sold"] + " "}<span className="Leaderboard-subtext">{currencies[0]}</span></span>
+          </Grid.Column>
+          <Grid.Column computer={2} tablet={2} textAlign='center'>
+            {item["avg_sell_price"]}
+          </Grid.Column>
+          <Grid.Column computer={2} tablet={2} textAlign='center'>
+            <span className={profit_color}>{item["profit"] + " "}<span className="Leaderboard-subtext">{currencies[1]}</span></span>
+          </Grid.Column>
+        </Grid>
+      </div>
+    )
+  }
+
   render() {
     var { loading, data, column, direction } = this.state
-    var { currencies, drizzle } = this.props
 
-    var table = null
     var background_item = null
 
     if(loading) {
       background_item = (<div id="Leaderboard-empty">Loading...</div>)
     } else if(data.length === 0) {
       background_item = (<div id="Leaderboard-empty">NO DATA</div>)
-    } else {
-      table = (<Table.Body id="Leaderboard-tableBody">
-            {data.map((item, index) => {
-              var color = 'grey'
-              if(item["profit"] > 0) {
-                color = 'green'
-              } else if(item["profit"] < 0) {
-                color = 'red'
-              }
-              return (
-                <Table.Row key={index}>
-                  <Table.Cell width={6}>
-                    <div className='Leaderboard-table-entry'><HumanName address={item["user"]} drizzle={drizzle} /></div>
-                  </Table.Cell>
-
-                  <Table.Cell width={2}>
-                    <div className='Leaderboard-table-entry'>{item["amount_0_bought"] + " " + currencies[0]}</div>
-                  </Table.Cell>
-
-                  <Table.Cell width={2}>
-                    <div className='Leaderboard-table-entry'>{item["avg_buy_price"]}</div>
-                  </Table.Cell>
-
-                  <Table.Cell width={2}>
-                    <div className='Leaderboard-table-entry'>{item["amount_0_sold"] + " " + currencies[0]}</div>
-                  </Table.Cell>
-
-                  <Table.Cell width={2}>
-                    <div className='Leaderboard-table-entry'>{item["avg_sell_price"]}</div>
-                  </Table.Cell>
-
-                  <Table.Cell width={2}>
-                    <div className='Leaderboard-table-entry'><span className={color}>{item["profit"] + " " + currencies[1]}</span></div>
-                  </Table.Cell>
-                </Table.Row>
-              )
-            })}
-          </Table.Body>)
     }
+
+    var symbol = "▲"
+    if(direction === 'descending') {
+      symbol = "▼"
+    }
+
+    var headers = {
+      "name": "Name",
+      "amount_0_bought": "# Bought",
+      "avg_buy_price": "Avg. Buy",
+      "amount_0_sold": "# Sold",
+      "avg_sell_price": "Avg. Sell",
+      "profit": "Profit"
+    }
+
+    headers[column] = headers[column] + symbol
 
     return (
       <div className="Leaderboard">
-        <Table striped basic celled unstackable sortable id="Leaderboard-table">
-          <Table.Header>
-            <Table.Row>
-              <Table.HeaderCell className='Leaderboard-table-header' textAlign='left'>Name</Table.HeaderCell>
-              <Table.HeaderCell sorted={column === 'amount_0_bought' ? direction : null} onClick={() => this.handleSort('amount_0_bought')} className='Leaderboard-table-header' textAlign='left'># Bought</Table.HeaderCell>
-              <Table.HeaderCell sorted={column === 'avg_buy_price' ? direction : null} onClick={() => this.handleSort('avg_buy_price')} className='Leaderboard-table-header' textAlign='left'>Avg. Buy</Table.HeaderCell>
-              <Table.HeaderCell sorted={column === 'amount_0_sold' ? direction : null} onClick={() => this.handleSort('amount_0_sold')} className='Leaderboard-table-header' textAlign='left'># Sold</Table.HeaderCell>
-              <Table.HeaderCell sorted={column === 'avg_sell_price' ? direction : null} onClick={() => this.handleSort('avg_sell_price')} className='Leaderboard-table-header' textAlign='left'>Avg. Sell</Table.HeaderCell>
-              <Table.HeaderCell sorted={column === 'profit' ? direction : null} onClick={() => this.handleSort('profit')} className='Leaderboard-table-header' textAlign='left'>Profit</Table.HeaderCell>
-            </Table.Row>
-          </Table.Header>
-          { table }
-        </Table>
-        { background_item }
+        <Grid id="Leaderboard-table-header">
+          <Grid.Column computer={4} tablet={6}>
+            {headers["name"]}
+          </Grid.Column>
+          <Grid.Column computer={3} tablet={2} onClick={() => this.handleSort('amount_0_bought')}>
+            {headers["amount_0_bought"]}
+          </Grid.Column>
+          <Grid.Column computer={2} tablet={2} onClick={() => this.handleSort('avg_buy_price')}>
+            {headers["avg_buy_price"]}
+          </Grid.Column>
+          <Grid.Column computer={3} tablet={2} onClick={() => this.handleSort('amount_0_sold')}>
+            {headers["amount_0_sold"]}
+          </Grid.Column>
+          <Grid.Column computer={2} tablet={2} onClick={() => this.handleSort('avg_sell_price')}>
+            {headers["avg_sell_price"]}
+          </Grid.Column>
+          <Grid.Column computer={2} tablet={2} onClick={() => this.handleSort('profit')}>
+            {headers["profit"]}
+          </Grid.Column>
+        </Grid>
+        <AutoSizer style={{outline: 'none'}}>
+          {({ height, width }) => (
+            <List
+              width={width}
+              height={height - 50}
+              rowHeight={50}
+              rowCount={data.length}
+              rowRenderer={(props) => this.rowRenderer(props)}
+              className="Leaderboard-infinite-list"
+            >
+            </List>
+          )}
+        </AutoSizer>
+        {background_item}
       </div>
     );
   }

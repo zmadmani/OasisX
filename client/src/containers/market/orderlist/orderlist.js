@@ -9,111 +9,26 @@ class OrderList extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      orders: null,
-      timeout: null,
       max_order: null
     }
 
     this.buildRow = this.buildRow.bind(this)
-    this.updateOrders = this.updateOrders.bind(this)
   }
 
-  async componentDidMount() {
-    this.updateOrders()
+  // async componentDidMount() {
+  //   this.updateOrders()
+  // }
+
+  getMax(orders) {
+    return Math.max.apply(Math, orders.map(function(o) { return o.curr_1_amt }))
   }
 
   shouldComponentUpdate(nextProps, nextState) {
-    if(nextState.orders !== this.state.orders) {
+    if(nextProps.orders !== this.props.orders) {
       return true
     } else {
       return false
     }
-  }
-
-  componentWillUnmount() {
-    if(this.state.timeout !== null) {
-      clearTimeout(this.state.timeout)
-    }
-  }
-
-  async updateOrders() {
-    var orders = await this.getOrders()
-    var max_order = Math.max.apply(Math, orders.map(function(o) { return o.curr_1_amt; }))
-    var timeout = setTimeout(this.updateOrders, 5000)
-    this.setState({ orders, timeout, max_order })
-  }
-
-  async getOrders() {
-    var { drizzle, currencies, type } = this.props
-    var market = drizzle.contracts.Market
-
-    if(currencies.length === 2) {
-      var token_addr_0 = drizzle.contracts[currencies[0]].address
-      var token_addr_1 = drizzle.contracts[currencies[1]].address
-
-      var pay_token = null
-      var buy_token = null
-
-      if(type === "BUY") {
-        pay_token = token_addr_1
-        buy_token = token_addr_0
-      } else {
-        pay_token = token_addr_0
-        buy_token = token_addr_1
-      }
-
-      const rawOrders = await drizzle.contracts.SupportMethods.methods.getOffers(market.address, pay_token, buy_token).call()
-      var orders = []
-      if(rawOrders) {
-        orders = this.processOrders(rawOrders)
-      }
-      return orders
-    }
-  }
-
-  processOrders(rawOrders) {
-    var { type } = this.props
-
-    var n = rawOrders["ids"].length
-    var orders = []
-    for(var i = 0; i < n; i++) {
-      if(rawOrders["ids"][i] !== "0") {
-        var id = rawOrders["ids"][i]
-        var maker = rawOrders["owners"][i]
-        var pay_amount = this.props.drizzle.web3.utils.fromWei(rawOrders["payAmts"][i].toString(), 'ether')
-        var buy_amount = this.props.drizzle.web3.utils.fromWei(rawOrders["buyAmts"][i].toString(), 'ether') 
-        var price = 0
-        var order = {}
-        if(type === "BUY") {
-          price = Math.round(pay_amount / buy_amount * 1000) / 1000
-          buy_amount = Math.round(buy_amount * 1000) / 1000
-          pay_amount = Math.round(pay_amount * 1000) / 1000
-          order = {
-            "price": price,
-            "curr_0_amt": buy_amount,
-            "curr_1_amt": pay_amount,
-            "id": id,
-            "type": type,
-            "maker": maker
-          }
-        } else {
-          price = Math.round(buy_amount / pay_amount * 1000) / 1000
-          buy_amount = Math.round(buy_amount * 1000) / 1000
-          pay_amount = Math.round(pay_amount * 1000) / 1000
-          order = {
-            "price": price,
-            "curr_0_amt": pay_amount,
-            "curr_1_amt": buy_amount,
-            "id": id,
-            "type": type,
-            "maker": maker
-          }
-        }
-        orders.push(order)
-      }
-    }
-
-    return orders
   }
 
   numberWithCommas(x) {
@@ -122,10 +37,8 @@ class OrderList extends Component {
       return parts.join(".");
   }
 
-  buildRow(item, index) {
-    var { max_order } = this.state
-    var { type, drizzleState, drizzle } = this.props
-    var account = drizzleState.accounts[0]
+  buildRow(item, index, max_order) {
+    var { type, account } = this.props
 
     var ratio = item["curr_1_amt"]/max_order * 100
     var direction = "right"
@@ -148,7 +61,7 @@ class OrderList extends Component {
     return (
       <Table.Row className={class_names} key={item["id"]} onClick={() => this.props.setSidebar(item) } style={style}>
         <Table.Cell textAlign='left' width={1}>
-          <div className='OrderList-table-entry OrderList-icon'><HumanName inactive_link icon_only drizzleState={drizzleState} drizzle={drizzle} address={item["maker"]} /></div>
+          <div className='OrderList-table-entry OrderList-icon'><HumanName inactive_link icon_only address={item["maker"]} /></div>
         </Table.Cell>
         <Table.Cell>
           <div className='OrderList-table-entry'>{this.numberWithCommas(item["price"])}</div>
@@ -167,8 +80,8 @@ class OrderList extends Component {
   }
 
   render() {
-    var { orders } = this.state
-    var { currencies } = this.props
+    // var { orders } = this.state
+    var { currencies, orders } = this.props
 
     if(!orders) {
       return (
@@ -186,6 +99,8 @@ class OrderList extends Component {
       )
     }
 
+    var max_order = this.getMax(orders)
+
     return (
       <div className="OrderList">
         <Table striped basic celled unstackable id="OrderList-table">
@@ -199,7 +114,7 @@ class OrderList extends Component {
           </Table.Header>
 
           <Table.Body id="OrderList-tableBody">
-            {orders.map(this.buildRow)}
+            {orders.map((item, index) => this.buildRow(item, index, max_order) )}
           </Table.Body>
         </Table>
 
