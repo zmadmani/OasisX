@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import { ethers } from 'ethers';
 import { Grid, List } from 'semantic-ui-react'
-import Chart from './chart/chart'
+import CandleChart from './chart/chart'
 
 import './stats.css'
 
@@ -131,7 +131,7 @@ class Stats extends Component {
       statistics[key] = this.buildStat(key, raw_stats)
     }
 
-    var chart = <div id="Stats-chart"><Chart orders={orders} currencies={currencies} /></div>
+    var chart = <div id="Stats-chart"><CandleChart orders={orders} currencies={currencies} /></div>
 
     return (
       <div className="Stats">

@@ -1,259 +1,207 @@
 import React, { Component } from 'react'
 import { ethers } from 'ethers';
-import { Charts, ChartContainer, ChartRow, YAxis, LineChart, BarChart, styler, Resizable } from "react-timeseries-charts";
-import { TimeSeries, Index } from "pondjs";
+
+import { format } from "d3-format";
+import { timeFormat } from "d3-time-format";
+
+import { ChartCanvas, Chart } from "react-stockcharts";
+import { BarSeries, CandlestickSeries, LineSeries } from "react-stockcharts/lib/series";
+import { XAxis, YAxis } from "react-stockcharts/lib/axes";
+import { CrossHairCursor, CurrentCoordinate } from "react-stockcharts/lib/coordinates";
+import { OHLCTooltip, MovingAverageTooltip } from "react-stockcharts/lib/tooltip";
+import { discontinuousTimeScaleProvider } from "react-stockcharts/lib/scale" 
+import { fitWidth } from "react-stockcharts/lib/helper";
+import { last } from "react-stockcharts/lib/utils";
+import { ema } from "react-stockcharts/lib/indicator";
 
 import './chart.css'
 
-const style = styler([
-    { key: "price", color: "white", width: 1 },
-    { key: "volume", color: "white" }
-]);
-
-class CrossHairs extends React.Component {
-    render() {
-        const { x, y } = this.props;
-        const style = { pointerEvents: "none", stroke: "#ccc" };
-        if (!(x === null) && !(y === null)) {
-            return (
-                <g>
-                    <line style={style} x1={0} y1={y} x2={this.props.width} y2={y} />
-                    <line style={style} x1={x} y1={0} x2={x} y2={this.props.height} />
-                </g>
-            );
-        } else {
-            return <g />;
-        }
-    }
+const candlesAppearance = {
+  wickStroke: "#7a8692",
+  fill: function fill(d) {
+    return d.close > d.open ? "rgba(0, 255, 0, 0.5)" : "rgba(255, 0, 0, 0.5)";
+  },
+  widthRatio: 0.8,
+  opacity: 1,
 }
 
-class Chart extends Component {
+class CandleChart extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      loading: true,
-      tracker: null,
-      chart_data: null,
-      volume_data: null,
-      timerange: null,
-      x: null,
-      y: null,
-      selection: null
     }
   }
 
   componentDidMount() {
   }
 
-  componentWillReceiveProps(nextProps) {
-    if(nextProps.orders.length > 0) {
-      var points = this.buildChartPoints(nextProps.orders)
-      var chart_data = new TimeSeries({
-        name: "Chart",
-        columns: ["time", "price"],
-        points: points
-      })
-      var timerange = chart_data.timerange()
-
-      var volume_points = []
-      for(var i = 0; i < nextProps.orders.length; i++) {
-        var item = nextProps.orders[i]
-        var vol = parseFloat(ethers.utils.formatUnits(item["curr_1"].toString(), 'ether'))
-        if(i > 0) {
-          var last_item = nextProps.orders[i-1]
-          if(item["raw_timestamp"] === last_item["raw_timestamp"]) {
-            volume_points[volume_points.length-1][1] += vol
-          } else {
-            volume_points.push([Index.getIndexString("1s", new Date(item["raw_timestamp"])), vol])
-          }
-        } else {
-          volume_points.push([Index.getIndexString("1s", new Date(item["raw_timestamp"])), vol])
-        }
-      }
-
-      volume_points.reverse()
-      var volume_data = new TimeSeries({
-        name: "Volume",
-        columns: ["index", "volume"],
-        points: volume_points
-      })
-      this.setState({loading: false, chart_data, volume_data, timerange })
-    }
-  }
-
   componentWillUnmount() {
-
   }
 
   componentWillMount() {
   }
-
-  handleTrackerChange = (tracker) => {
-    if(!tracker) {
-      this.setState({ tracker, x: null, y: null })
+  
+  shouldComponentUpdate(nextProps, nextState) {
+    if(this.props.orders.length !== nextProps.orders.length) {
+      return true
     } else {
-      this.setState({ tracker })
+      return false
     }
-  }
-
-  handleTimeRangeChange = (timerange) => {
-    this.setState({ timerange })
-  }
-
-  handleMouseMove = (x, y) => {
-    this.setState({ x, y })
   }
 
   buildChartPoints(orders) {
-    var chart_data = orders.map(function(order) {
-      return [order["raw_timestamp"], order["price"], order["curr_2"]]
-    })
-    chart_data.reverse()
-    return chart_data
+    var data = []
+
+    var first_timestamp = orders[orders.length - 1]['raw_timestamp']
+    first_timestamp = first_timestamp - (first_timestamp % (3600000/4))
+
+    var curr_candle = {
+      date: new Date(first_timestamp),
+      open: orders[orders.length-1]['price'],
+      high: orders[orders.length-1]['price'],
+      low: orders[orders.length-1]['price'],
+      close: orders[orders.length-1]['price'],
+      volume: parseFloat(ethers.utils.formatUnits(orders[orders.length-1]['curr_1'], 'ether'))
+    }
+    var end_timestamp = first_timestamp + (3600000/4)
+    for(var i = orders.length-2; i >= 0; i--) {
+      var order = orders[i]
+      if(order["raw_timestamp"] < end_timestamp) {
+        curr_candle['volume'] += parseFloat(ethers.utils.formatUnits(order['curr_1'], 'ether'))
+        curr_candle['close'] = order['price']
+        if(order['price'] > curr_candle['high']) {
+          curr_candle['high'] = order['price']
+        } else if(order['price'] < curr_candle['low']) {
+          curr_candle['low'] = order['price']
+        }
+      } else {
+        data.push(curr_candle)
+        curr_candle = {
+          date: new Date(end_timestamp),
+          open: curr_candle['close'],
+          high: Math.max(order['price'], curr_candle['close']),
+          low: Math.min(order['price'], curr_candle['close']),
+          close: order['price'],
+          volume: parseFloat(ethers.utils.formatUnits(order['curr_1'], 'ether'))
+        }
+        end_timestamp = end_timestamp + (3600000/4)
+      }
+    }
+    return data
   }
 
   render() {
-    var { loading, chart_data, volume_data, timerange } = this.state
-    var { currencies } = this.props
+    var { width, ratio, orders } = this.props
 
-    var chart = <div id="Chart-loading">Loading...</div>
-    if(chart_data && !loading) {
-      var start_time = chart_data.range().begin()
-      var end_time = chart_data.range().end()
-      end_time.setHours(end_time.getHours() + 6)
-      var min_val = chart_data.crop(timerange).min("price")
-      var max_val = chart_data.crop(timerange).max("price")
-      var padding = (max_val - min_val)*0.1
-      var max_volume = volume_data.crop(timerange).max("volume")
-      var volume_padding = (max_volume)*0.1
+    var chart = <div id="CandleChart-loading">Loading...</div>
+    if(orders.length > 0) {
+      var initialData = this.buildChartPoints(orders)
+      const ema10 = ema()
+        .options({
+          windowSize: 10, // optional will default to 10
+          sourcePath: "close", // optional will default to close as the source
+        })
+        .skipUndefined(true) // defaults to true
+        .merge((d, c) => {d.ema10 = c;}) // Required, if not provided, log a error
+        .accessor(d => d.ema10) // Required, if not provided, log an error during calculation
+        .stroke("#ce4200"); // Optional
+      const ema50 = ema()
+        .options({
+          windowSize: 50, // optional will default to 10
+          sourcePath: "close", // optional will default to close as the source
+        })
+        .skipUndefined(true) // defaults to true
+        .merge((d, c) => {d.ema50 = c;}) // Required, if not provided, log a error
+        .accessor(d => d.ema50) // Required, if not provided, log an error during calculation
+        .stroke("blue"); // Optional
+      const calculatedData = ema50(ema10(initialData))
+
+      const margin = { left: 50, right: 60, top: 30, bottom: 50 }
+      const height = 500
+      var gridHeight = height - margin.top - margin.bottom;
+      var gridWidth = width - margin.left - margin.right;
+      var showGrid = true;
+      var yGrid = showGrid ? { 
+          innerTickSize: -1 * gridWidth,
+          tickStrokeDasharray: 'Solid',
+          tickStrokeOpacity: 0.2,
+          tickStrokeWidth: 1
+      } : {};
+      var xGrid = showGrid ? { 
+          innerTickSize: -1 * gridHeight,
+          tickStrokeDasharray: 'Solid',
+          tickStrokeOpacity: 0.2,
+          tickStrokeWidth: 1
+      } : {};
+      const xScaleProvider = discontinuousTimeScaleProvider.inputDateAccessor( d => d.date )
+      const { data, xScale, xAccessor, displayXAccessor } = xScaleProvider( calculatedData )
+      const start = xAccessor(last(data))
+      const end = xAccessor(data[Math.max(0, data.length - 100)])
+      const xExtents = [start, end]
+
       chart = (
-        <Resizable>
-          <ChartContainer 
-            timeRange={timerange} 
-            minTime={start_time} 
-            maxTime={end_time} 
-            timeAxisAngledLabels={true}
-            timeAxisHeight={80}
-            paddingLeft={20}
-            paddingRight={20}
-            enablePanZoom={true}
-            minDuration={1000 * 60 * 60}
-            onTrackerChanged={this.handleTrackerChange}
-            onBackgroundClick={() => this.setState({ selection: null })}
-            onTimeRangeChanged={this.handleTimeRangeChange}
-            onMouseMove={(x, y) => this.handleMouseMove(x, y) }
-            showGrid
-            style={{
-                background: "#0b1215",
-                borderStyle: "solid",
-                borderWidth: 1,
-                borderColor: "#0b1215",
-                paddingTop: "1em"
-            }}
-            timeAxisStyle={{
-                              ticks: {
-                                  stroke: "#AAA",
-                                  opacity: 0.25,
-                                  "stroke-dasharray": "1,1"
-                                  // Note: this isn't in camel case because this is
-                                  // passed into d3's style
-                              },
-                              values: {
-                                  fill: "#AAA",
-                                  "font-size": 12
-                              }
-                          }}
-          >
-            <ChartRow height="325">
-              <YAxis 
-                id="price" 
-                label={"Price (" + currencies[1] + " / " + currencies[0] + ")"} 
-                min={min_val - padding} 
-                max={max_val + padding}
-                hideAxisLine 
-                showGrid 
-                width="50" 
-                type="linear" 
-                format=",.2f"
-                style={{
-                    ticks: {
-                        stroke: "#AAA",
-                        opacity: 0.25,
-                        "stroke-dasharray": "1,1"
-                        // Note: this isn't in camel case because this is
-                        // passed into d3's style
-                    }}}
-              />
-              <Charts>
-                <LineChart 
-                  axis="price"
-                  series={chart_data} 
-                  columns={["price"]} 
-                  style={style}
-                  interpolation="curveStepAfter"
-                  selection={this.state.selection}
-                  onSelectionChange={selection =>
-                                      this.setState({ selection })
-                                    }
-                />
-                <CrossHairs x={this.state.x} y={this.state.y} />
-              </Charts>
-            </ChartRow>
-            <ChartRow height="75">
-              <YAxis 
-                id="amount" 
-                label={"Volume (" + currencies[1] + ")"} 
-                min={0}
-                max={max_volume + volume_padding} 
-                hideAxisLine
-                showGrid
-                width="50" 
-                type="linear" 
-                format=",.2r"
-                style={{
-                    ticks: {
-                        stroke: "#AAA",
-                        opacity: 0.25,
-                        "stroke-dasharray": "1,1"
-                        // Note: this isn't in camel case because this is
-                        // passed into d3's style
-                    }}}
-              />
-              <Charts>
-                <BarChart
-                    axis="amount"
-                    style={style}
-                    columns={["volume"]}
-                    series={volume_data}
-                />
-              </Charts>
-            </ChartRow>
-          </ChartContainer>
-        </Resizable>
+        <ChartCanvas
+          height={height}
+          ratio={ratio}
+          width={width}
+          margin={margin}
+          type="hybrid"
+          seriesName="Data"
+          data={data}
+          xScale={xScale}
+          xAccessor={xAccessor}
+          displayXAccessor={displayXAccessor}
+          xExtents={xExtents}
+          clamp={true}
+        >
+          <Chart id={1} height={400} yExtents={[d => [d.high+3, d.low-3], ema10.accessor(), ema50.accessor()]}>
+            <YAxis axisAt="right" orient="right" ticks={10} stroke="#9aa3ad" tickStroke="#9aa3ad" {...yGrid} />
+            <CandlestickSeries {...candlesAppearance} />
+            <LineSeries yAccessor={ema10.accessor()} stroke={ema10.stroke()}/>
+            <LineSeries yAccessor={ema50.accessor()} stroke={ema50.stroke()}/>
+            <CurrentCoordinate yAccessor={ema10.accessor()} fill={ema10.stroke()} />
+            <CurrentCoordinate yAccessor={ema50.accessor()} fill={ema50.stroke()} />
+            <OHLCTooltip origin={[10, 10]} xDisplayFormat={timeFormat("%m-%d-%y %I:%M %p")} textFill="#9aa3ad" />
+            <MovingAverageTooltip
+              origin={[10, 25]}
+              textFill="#9aa3ad"
+              options={[
+                {
+                  yAccessor: ema10.accessor(),
+                  type: "EMA",
+                  stroke: ema10.stroke(),
+                  windowSize: ema10.options().windowSize,
+                  echo: "some echo here",
+                },
+                {
+                  yAccessor: ema50.accessor(),
+                  type: "EMA",
+                  stroke: ema50.stroke(),
+                  windowSize: ema50.options().windowSize,
+                  echo: "some echo here",
+                },
+              ]}
+            />
+          </Chart>
+          <Chart id={2} origin={(w, h) => [0, h - 100]} height={100} yExtents={d => d.volume}>
+            <XAxis axisAt="bottom" orient="bottom" stroke="#9aa3ad" tickStroke="#9aa3ad" {...xGrid} />
+            <YAxis axisAt="left" orient="left" ticks={5} stroke="#9aa3ad" tickStroke="#9aa3ad" tickFormat={format(".2s")} />
+            <BarSeries
+              yAccessor={d => d.volume}
+              fill={d => (d.close > d.open ? "rgba(0, 255, 0, 0.2)" : "rgba(255, 0, 0, 0.3)")}
+            />
+          </Chart>
+          <CrossHairCursor stroke="#9aa3ad" opacity={1} />
+        </ChartCanvas>
       )
     }
-
     return (
-      <div className="Chart">
+      <div className="CandleChart">
         {chart}
       </div>
     );
   }
 }
 
-export default Chart
-
-                // <BandChart
-                //   axis="price"
-                //   series={chart_data}
-                //   column="price"
-                //   aggregation={ {
-                //       size: "30m",
-                //       reducers: {
-                //           outer: [percentile(5), percentile(95)],
-                //           inner: [percentile(25), percentile(75)]
-                //       }
-                //   } }
-                //   style={style}
-                //   interpolation="curveBasis"
-                // />
+CandleChart = fitWidth(CandleChart);
+export default CandleChart
