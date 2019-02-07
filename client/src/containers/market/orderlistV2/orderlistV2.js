@@ -53,7 +53,7 @@ class OrderListV2 extends Component {
       }
       return (
         <div id="OrderListV2-table-middle" key={key} style={style} >
-          <Grid padded={true}>
+          <Grid padded={'horizontally'}>
             <Grid.Column computer={2} tablet={2} mobile={3}>
             </Grid.Column>
             <Grid.Column computer={4} tablet={4} mobile={4}>
@@ -96,7 +96,7 @@ class OrderListV2 extends Component {
     let price = item["type"] === "BUY" ? (<span className="green">{this.numberWithCommas(Math.round(item["price"] * 100)/100)}</span>) : (<span className="red">{this.numberWithCommas(Math.round(item["price"] * 100)/100)}</span>)
     return (
       <div className="OrderListV2-table-entry" key={key} style={style} onClick={() => this.props.setSidebar(item) } >
-        <Grid padded={true}>
+        <Grid padded={'horizontally'} verticalAlign={'middle'}>
           <Grid.Column computer={2} tablet={2} mobile={3}>
             <HumanName inactive_link icon_only address={item["maker"]} />
           </Grid.Column>
@@ -159,10 +159,10 @@ class OrderListV2 extends Component {
             <List
               width={width}
               height={height - 50}
-              rowHeight={50}
+              rowHeight={40}
               rowCount={this.orders.length}
               rowRenderer={(props) => this.rowRenderer(props)}
-              scrollToIndex={sell_orders_reverse.length + 5}
+              scrollToIndex={sell_orders_reverse.length + 6}
               className="OrderListV2-infinite-list"
             >
             </List>

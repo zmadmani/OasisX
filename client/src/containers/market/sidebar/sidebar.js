@@ -76,7 +76,7 @@ class SideBar extends Component {
       const info = await this.props.options.contracts.Market.getOffer(nextProps.sidebar_info["id"])
       const owner = await this.props.options.contracts.Market.getOwner(nextProps.sidebar_info["id"])
       this.setState({ id: nextProps.sidebar_info["id"], info, owner, amount: '0', ui_amount: '' })
-      setTimeout(this.stopLoading, 150)
+      setTimeout(this.stopLoading, 50)
     }
   }
 

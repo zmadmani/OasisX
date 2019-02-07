@@ -18,13 +18,16 @@ var provider = null
 var signer = null
 var readOnly = true
 
+var contract_initializer = null
 if(ethereum) {
 	provider = new ethers.providers.Web3Provider(ethereum)
 	signer = provider.getSigner()
+	contract_initializer = signer
 	readOnly = false
 } else {
 	provider = new ethers.getDefaultProvider()
 	signer = new ethers.Wallet.createRandom()
+	contract_initializer = provider
 }
 
 const config = require("./config")
@@ -40,11 +43,11 @@ const SupportMethodsAbi = require("./abi/otc-support-methods/otc-support-methods
 // const supportMethods = new web3.eth.Contract(SupportMethodsAbi.interface, config["otcSupportMethods"]["main"]["address"])
 
 const contracts = {
-	WETH: new ethers.Contract(config["tokens"]["main"]["W-ETH"], WEthAbi.interface, provider),
-	DAI: new ethers.Contract(config["tokens"]["main"]["DAI"], erc20Abi.interface, provider),
-	MKR: new ethers.Contract(config["tokens"]["main"]["MKR"], erc20Abi.interface, provider),
-	Market: new ethers.Contract(config["market"]["main"]["address"], MatchingMarketAbi.interface, provider),
-	SupportMethods: new ethers.Contract(config["otcSupportMethods"]["main"]["address"], SupportMethodsAbi.interface, provider)
+	WETH: new ethers.Contract(config["tokens"]["main"]["W-ETH"], WEthAbi.interface, contract_initializer),
+	DAI: new ethers.Contract(config["tokens"]["main"]["DAI"], erc20Abi.interface, contract_initializer),
+	MKR: new ethers.Contract(config["tokens"]["main"]["MKR"], erc20Abi.interface, contract_initializer),
+	Market: new ethers.Contract(config["market"]["main"]["address"], MatchingMarketAbi.interface, contract_initializer),
+	SupportMethods: new ethers.Contract(config["otcSupportMethods"]["main"]["address"], SupportMethodsAbi.interface, contract_initializer)
 }
 
 const options = {

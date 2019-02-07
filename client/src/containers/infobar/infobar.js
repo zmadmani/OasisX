@@ -119,7 +119,7 @@ class Infobar extends Component {
     let UI_allowance = false
     raw_allowance = ethers.utils.bigNumberify(raw_allowance)
     let balance = ethers.utils.bigNumberify(raw_balance)
-    if(raw_allowance.gte(balance)) {
+    if(raw_allowance.gt(balance)) {
       UI_allowance = true
     } else {
       UI_allowance = false

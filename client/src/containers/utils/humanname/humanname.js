@@ -61,8 +61,8 @@ class HumanName extends Component {
       onClick = null
     }
 
-    var icon = (<div className="HumanName-circle" style={color}><span className="HumanName-initials">{initials}</span></div>)
-    var final = (<span className="HumanName" title={address} onClick={onClick}>{icon}{name}</span>)
+    var icon = (<div className="HumanName-circle" style={color}>{initials}</div>)
+    var final = (<span className="HumanName" title={address} onClick={onClick}>{icon} {name}</span>)
     if( icon_only ) {
       final = (<span className="HumanName" title={address} onClick={onClick}>{icon}</span>)
     }

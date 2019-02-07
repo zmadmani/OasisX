@@ -27,12 +27,14 @@
 	width: 100%;
 	cursor: pointer;
 	font-weight: 600;
+	line-height: 40px;
 }
 
 #OrderListV2-table-middle {
 	font-weight: 600;
 	background-color: black;
 	border-style: solid none;
+	line-height: 40px;
 	border-width: 2px;
 	border-color: rgba(255,0,0,0.3) white rgba(0,255,0,0.3) white;
 }
