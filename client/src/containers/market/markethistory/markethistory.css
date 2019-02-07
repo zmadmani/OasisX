@@ -17,6 +17,7 @@
 
 .MarketHistory-table-entry {
 	color: #9aa3ad !important;
+	white-space: nowrap;
 }
 
 .MarketHistory-table-header {

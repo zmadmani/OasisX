@@ -54,12 +54,12 @@ class OrderListV2 extends Component {
       return (
         <div id="OrderListV2-table-middle" key={key} style={style} >
           <Grid padded={true}>
-            <Grid.Column computer={2} tablet={2} mobile={2}>
+            <Grid.Column computer={2} tablet={2} mobile={3}>
             </Grid.Column>
             <Grid.Column computer={4} tablet={4} mobile={4}>
               {price}
             </Grid.Column>
-            <Grid.Column computer={5} tablet={5} mobile={5}>
+            <Grid.Column computer={5} tablet={5} mobile={4}>
             </Grid.Column>
             <Grid.Column computer={5} tablet={5} mobile={5}>
               Last Price
@@ -96,7 +96,7 @@ class OrderListV2 extends Component {
     let price = item["type"] === "BUY" ? (<span className="green">{this.numberWithCommas(Math.round(item["price"] * 100)/100)}</span>) : (<span className="red">{this.numberWithCommas(Math.round(item["price"] * 100)/100)}</span>)
     return (
       <div className="OrderListV2-table-entry" key={key} style={style} onClick={() => this.props.setSidebar(item) } >
-        <Grid divided padded={true}>
+        <Grid padded={true}>
           <Grid.Column computer={2} tablet={2} mobile={3}>
             <HumanName inactive_link icon_only address={item["maker"]} />
           </Grid.Column>
@@ -141,13 +141,13 @@ class OrderListV2 extends Component {
     return (
       <div className="OrderListV2">
         <Grid id="OrderListV2-table-header">
-          <Grid.Column computer={2} tablet={2} mobile={2}>
+          <Grid.Column computer={2} tablet={2} mobile={3}>
             <Icon name="user circle" size="large" />
           </Grid.Column>
           <Grid.Column computer={4} tablet={4} mobile={4}>
             Price
           </Grid.Column>
-          <Grid.Column computer={5} tablet={5} mobile={5}>
+          <Grid.Column computer={5} tablet={5} mobile={4}>
             {currencies[0]}
           </Grid.Column>
           <Grid.Column computer={5} tablet={5} mobile={5}>

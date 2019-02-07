@@ -228,23 +228,23 @@ class Leaderboard extends Component {
 
     return (
       <div className="Leaderboard-table-entry" key={key} style={style}>
-        <Grid divided padded={true}>
-          <Grid.Column computer={4} tablet={6}>
+        <Grid padded={true}>
+          <Grid.Column computer={4} tablet={6} mobile={10}>
             <HumanName address={item["user"]} />
           </Grid.Column>
-          <Grid.Column computer={3} tablet={2}>
+          <Grid.Column computer={3} tablet={2} only={'computer tablet'}>
             <span>{item["amount_0_bought"] + " "}<span className="Leaderboard-subtext">{currencies[0]}</span></span>
           </Grid.Column>
-          <Grid.Column computer={2} tablet={2}>
+          <Grid.Column computer={2} tablet={2} only={'computer tablet'}>
             {item["avg_buy_price"]}
           </Grid.Column>
-          <Grid.Column computer={3} tablet={2} textAlign='left'>
+          <Grid.Column computer={3} tablet={2} only={'computer tablet'}>
             <span>{item["amount_0_sold"] + " "}<span className="Leaderboard-subtext">{currencies[0]}</span></span>
           </Grid.Column>
-          <Grid.Column computer={2} tablet={2} textAlign='center'>
+          <Grid.Column computer={2} tablet={2} only={'computer tablet'}>
             {item["avg_sell_price"]}
           </Grid.Column>
-          <Grid.Column computer={2} tablet={2} textAlign='center'>
+          <Grid.Column computer={2} tablet={2} mobile={6}>
             <span className={profit_color}>{item["profit"] + " "}<span className="Leaderboard-subtext">{currencies[1]}</span></span>
           </Grid.Column>
         </Grid>
@@ -282,22 +282,22 @@ class Leaderboard extends Component {
     return (
       <div className="Leaderboard">
         <Grid id="Leaderboard-table-header">
-          <Grid.Column computer={4} tablet={6}>
+          <Grid.Column computer={4} tablet={6} mobile={10}>
             {headers["name"]}
           </Grid.Column>
-          <Grid.Column computer={3} tablet={2} onClick={() => this.handleSort('amount_0_bought')}>
+          <Grid.Column computer={3} tablet={2} onClick={() => this.handleSort('amount_0_bought')} only={'computer tablet'}>
             {headers["amount_0_bought"]}
           </Grid.Column>
-          <Grid.Column computer={2} tablet={2} onClick={() => this.handleSort('avg_buy_price')}>
+          <Grid.Column computer={2} tablet={2} onClick={() => this.handleSort('avg_buy_price')} only={'computer tablet'}>
             {headers["avg_buy_price"]}
           </Grid.Column>
-          <Grid.Column computer={3} tablet={2} onClick={() => this.handleSort('amount_0_sold')}>
+          <Grid.Column computer={3} tablet={2} onClick={() => this.handleSort('amount_0_sold')} only={'computer tablet'}>
             {headers["amount_0_sold"]}
           </Grid.Column>
-          <Grid.Column computer={2} tablet={2} onClick={() => this.handleSort('avg_sell_price')}>
+          <Grid.Column computer={2} tablet={2} onClick={() => this.handleSort('avg_sell_price')} only={'computer tablet'}>
             {headers["avg_sell_price"]}
           </Grid.Column>
-          <Grid.Column computer={2} tablet={2} onClick={() => this.handleSort('profit')}>
+          <Grid.Column computer={2} tablet={2} mobile={6} onClick={() => this.handleSort('profit')}>
             {headers["profit"]}
           </Grid.Column>
         </Grid>

@@ -68,7 +68,7 @@ class MarketHistory extends Component {
     }
     style = Object.assign(custom_style, style)
 
-    var price = item["type"] === "BUY" ? (<span className="green MarketHistory-type">{this.numberWithCommas(Math.round(item["price"] * 1000)/1000)}</span>) : (<span className="red MarketHistory-type">{this.numberWithCommas(Math.round(item["price"] * 1000)/1000)}</span>)
+    var price = item["type"] === "BUY" ? (<span className="green MarketHistory-type">{this.numberWithCommas(Math.round(item["price"] * 100)/100)}</span>) : (<span className="red MarketHistory-type">{this.numberWithCommas(Math.round(item["price"] * 100)/100)}</span>)
     var participants = (<div className="MarketHistory-participants">
                           <div className="MarketHistory-taker"><HumanName icon_only address={item["taker"]} /></div>
                           <div className="MarketHistory-arrow"><Icon size="large" name="long arrow alternate right" /></div>
@@ -76,18 +76,18 @@ class MarketHistory extends Component {
                         </div>)
     return (
       <div className="MarketHistory-table-entry" key={key} style={style}>
-        <Grid divided padded={true}>
+        <Grid padded={true}>
           <Grid.Column computer={3} tablet={3} mobile={3}>
             {price}
           </Grid.Column>
-          <Grid.Column computer={4} tablet={4} mobile={5}>
+          <Grid.Column computer={4} tablet={4} mobile={6}>
             {item["timestamp"]}
           </Grid.Column>
           <Grid.Column computer={3} tablet={3} mobile={3}>
-            {this.numberWithCommas(Math.round(ethers.utils.formatUnits(item["curr_0"], 'ether') * 1000) / 1000 )}
+            {this.numberWithCommas(Math.round(ethers.utils.formatUnits(item["curr_0"], 'ether') * 100) / 100 )}
           </Grid.Column>
-          <Grid.Column computer={3} tablet={3} mobile={5}>
-            {this.numberWithCommas(Math.round(ethers.utils.formatUnits(item["curr_1"], 'ether') * 1000) / 1000 )}
+          <Grid.Column computer={3} tablet={3} mobile={4}>
+            {this.numberWithCommas(Math.round(ethers.utils.formatUnits(item["curr_1"], 'ether') * 100) / 100 )}
           </Grid.Column>
           <Grid.Column computer={3} tablet={3} only={'computer tablet'} textAlign='center'>
             {participants}
@@ -108,13 +108,13 @@ class MarketHistory extends Component {
           <Grid.Column computer={3} tablet={3} mobile={3}>
             Price
           </Grid.Column>
-          <Grid.Column computer={4} tablet={4} mobile={5}>
+          <Grid.Column computer={4} tablet={4} mobile={6}>
             Time
           </Grid.Column>
           <Grid.Column computer={3} tablet={3} mobile={3}>
             {currencies[0]}
           </Grid.Column>
-          <Grid.Column computer={3} tablet={3} mobile={5}>
+          <Grid.Column computer={3} tablet={3} mobile={4}>
             {currencies[1]}
           </Grid.Column>
           <Grid.Column computer={3} tablet={3} only={'computer tablet'}>

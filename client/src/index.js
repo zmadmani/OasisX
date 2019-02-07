@@ -10,9 +10,22 @@ import registerServiceWorker from './registerServiceWorker';
 import { ethers } from 'ethers';
 
 // let provider = new ethers.getDefaultProvider()
-window.ethereum.enable()
-let provider = new ethers.providers.Web3Provider(window.ethereum)
-let signer = provider.getSigner()
+var ethereum = null
+if(window.web3) {
+	ethereum = window.ethereum ? window.ethereum : window.web3.currentProvider
+}
+var provider = null
+var signer = null
+var readOnly = true
+
+if(ethereum) {
+	provider = new ethers.providers.Web3Provider(ethereum)
+	signer = provider.getSigner()
+	readOnly = false
+} else {
+	provider = new ethers.getDefaultProvider()
+	signer = new ethers.Wallet.createRandom()
+}
 
 const config = require("./config")
 const erc20Abi = require("./abi/standard-token/erc20")
@@ -27,17 +40,18 @@ const SupportMethodsAbi = require("./abi/otc-support-methods/otc-support-methods
 // const supportMethods = new web3.eth.Contract(SupportMethodsAbi.interface, config["otcSupportMethods"]["main"]["address"])
 
 const contracts = {
-	WETH: new ethers.Contract(config["tokens"]["main"]["W-ETH"], WEthAbi.interface, signer),
-	DAI: new ethers.Contract(config["tokens"]["main"]["DAI"], erc20Abi.interface, signer),
-	MKR: new ethers.Contract(config["tokens"]["main"]["MKR"], erc20Abi.interface, signer),
-	Market: new ethers.Contract(config["market"]["main"]["address"], MatchingMarketAbi.interface, signer),
-	SupportMethods: new ethers.Contract(config["otcSupportMethods"]["main"]["address"], SupportMethodsAbi.interface, signer)
+	WETH: new ethers.Contract(config["tokens"]["main"]["W-ETH"], WEthAbi.interface, provider),
+	DAI: new ethers.Contract(config["tokens"]["main"]["DAI"], erc20Abi.interface, provider),
+	MKR: new ethers.Contract(config["tokens"]["main"]["MKR"], erc20Abi.interface, provider),
+	Market: new ethers.Contract(config["market"]["main"]["address"], MatchingMarketAbi.interface, provider),
+	SupportMethods: new ethers.Contract(config["otcSupportMethods"]["main"]["address"], SupportMethodsAbi.interface, provider)
 }
 
 const options = {
 	provider: provider,
 	signer: signer,
-	contracts: contracts
+	contracts: contracts,
+	readOnly: readOnly
 }
 
 ReactDOM.render(<App options={options} />, document.getElementById('root'));

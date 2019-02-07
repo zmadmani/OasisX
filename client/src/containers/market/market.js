@@ -188,7 +188,8 @@ class Market extends Component {
       var offer = this.getPrice(pay_amt, buy_amt, type)
       if(offer) {
         var timestamp = new Date(order["timestamp"] * 1000)
-        timestamp = timestamp.toLocaleTimeString() + " " + timestamp.toLocaleDateString()
+        timestamp = timestamp.toLocaleTimeString(undefined, {hour: 'numeric', minute: '2-digit'}) + " " + timestamp.toLocaleDateString(undefined, {day: 'numeric', month: 'numeric', year: '2-digit'})
+        // timestamp = timestamp.toLocaleTimeString() + " " + timestamp.toLocaleDateString()
         order = {
           "raw_timestamp": order["timestamp"] * 1000,
           "timestamp": timestamp,
@@ -387,6 +388,13 @@ class Market extends Component {
             <Tab menu={{ fluid: true, tabular: true, attached: 'top' }} panes={activity_panes.slice(0,3)} />
           </Responsive>
         </div>
+
+        <Responsive maxWidth={Responsive.onlyTablet.minWidth}>
+          <div id="Market-leaderboard-pane">
+            <div className="Market-headers">Leaderboard</div>
+            <Leaderboard currencies={currencies} account={account} options={options} orders={past_orders} />
+          </div>
+        </Responsive>
       </div>
     );
   }
