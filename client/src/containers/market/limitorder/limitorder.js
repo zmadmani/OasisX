@@ -190,7 +190,7 @@ class LimitOrder extends Component {
 
   render() {
     var { price, amount_0, amount_1, ui_amount_0, ui_amount_1, bignumbers, loading, success, error } = this.state
-    var { currencies, last_price, balances } = this.props
+    var { currencies, last_price, balances, options } = this.props
     
     var can_buy = false
     var can_sell = false
@@ -231,6 +231,7 @@ class LimitOrder extends Component {
               placeholder='Enter Price...'
               value={price}
               onChange={(e) => { this.handlePriceChange(e.target.value) }}
+              disabled={options.readOnly}
             />
             <span className="LimitOrder-currentPrice" onClick={() => this.handlePriceChange(last_price) } >Current Market Price</span>
           </Form.Field>
@@ -241,17 +242,17 @@ class LimitOrder extends Component {
                 label={{ basic: true, content: currencies[0] }}
                 labelPosition='right'
                 placeholder='Enter Amount...'
-                disabled={price === ''}
+                disabled={price === '' || options.readOnly}
                 value={ui_amount_0}
                 onChange={(e) => { this.handleAmountChange(0, e.target.value) }}
                 className="LimitOrder-amount-input"
               />
               <Button.Group className="LimitOrder-mini-buttons" size='mini' basic inverted>
-                <Button disabled={price === ""} onClick={() => this.handleAmountChange(1, '') } >0%</Button>
-                <Button disabled={price === ""} onClick={() => this.handleAmountPercentageChange(0, curr_0_balance.div(bignumbers[4]))} >25%</Button>
-                <Button disabled={price === ""} onClick={() => this.handleAmountPercentageChange(0, curr_0_balance.div(bignumbers[2]))} >50%</Button>
-                <Button disabled={price === ""} onClick={() => this.handleAmountPercentageChange(0, curr_0_balance.mul(bignumbers[3]).div(bignumbers[4]))} >75%</Button>
-                <Button disabled={price === ""} onClick={() => this.handleAmountPercentageChange(0, curr_0_balance) } >100%</Button>
+                <Button disabled={price === "" || options.readOnly} onClick={() => this.handleAmountChange(1, '') } >0%</Button>
+                <Button disabled={price === "" || options.readOnly} onClick={() => this.handleAmountPercentageChange(0, curr_0_balance.div(bignumbers[4]))} >25%</Button>
+                <Button disabled={price === "" || options.readOnly} onClick={() => this.handleAmountPercentageChange(0, curr_0_balance.div(bignumbers[2]))} >50%</Button>
+                <Button disabled={price === "" || options.readOnly} onClick={() => this.handleAmountPercentageChange(0, curr_0_balance.mul(bignumbers[3]).div(bignumbers[4]))} >75%</Button>
+                <Button disabled={price === "" || options.readOnly} onClick={() => this.handleAmountPercentageChange(0, curr_0_balance) } >100%</Button>
               </Button.Group>
             </Form.Field>
             <Form.Field>
@@ -259,21 +260,21 @@ class LimitOrder extends Component {
                 label={{ basic: true, content: currencies[1] }}
                 labelPosition='right'
                 placeholder='Enter Amount...'
-                disabled={price === ''}
+                disabled={price === '' || options.readOnly}
                 value={ui_amount_1}
                 onChange={(e) => { this.handleAmountChange(1, e.target.value) }}
                 className="LimitOrder-amount-input"
               />
               <Button.Group className="LimitOrder-mini-buttons" size='mini' basic inverted>
-                <Button disabled={price === ""} onClick={() => this.handleAmountChange(1, '') } >0%</Button>
-                <Button disabled={price === ""} onClick={() => this.handleAmountPercentageChange(1, curr_1_balance.div(bignumbers[4]))} >25%</Button>
-                <Button disabled={price === ""} onClick={() => this.handleAmountPercentageChange(1, curr_1_balance.div(bignumbers[2]))} >50%</Button>
-                <Button disabled={price === ""} onClick={() => this.handleAmountPercentageChange(1, curr_1_balance.mul(bignumbers[3]).div(bignumbers[4]))} >75%</Button>
-                <Button disabled={price === ""} onClick={() => this.handleAmountPercentageChange(1, curr_1_balance) } >100%</Button>
+                <Button disabled={price === "" || options.readOnly} onClick={() => this.handleAmountChange(1, '') } >0%</Button>
+                <Button disabled={price === "" || options.readOnly} onClick={() => this.handleAmountPercentageChange(1, curr_1_balance.div(bignumbers[4]))} >25%</Button>
+                <Button disabled={price === "" || options.readOnly} onClick={() => this.handleAmountPercentageChange(1, curr_1_balance.div(bignumbers[2]))} >50%</Button>
+                <Button disabled={price === "" || options.readOnly} onClick={() => this.handleAmountPercentageChange(1, curr_1_balance.mul(bignumbers[3]).div(bignumbers[4]))} >75%</Button>
+                <Button disabled={price === "" || options.readOnly} onClick={() => this.handleAmountPercentageChange(1, curr_1_balance) } >100%</Button>
               </Button.Group>
             </Form.Field>
-          <Button className="LimitOrder-button" color='green' disabled={!can_buy || loading} onClick={() => this.handleSubmit("BUY")} >BUY {currencies[0]}</Button>
-          <Button className="LimitOrder-button" color='red' disabled={!can_sell || loading} onClick={() => this.handleSubmit("SELL")} >SELL {currencies[0]}</Button>
+          <Button className="LimitOrder-button" color='green' disabled={!can_buy || loading || options.readOnly} onClick={() => this.handleSubmit("BUY")} >BUY {currencies[0]}</Button>
+          <Button className="LimitOrder-button" color='red' disabled={!can_sell || loading || options.readOnly} onClick={() => this.handleSubmit("SELL")} >SELL {currencies[0]}</Button>
           {side_text}
         </Form>
       </div>

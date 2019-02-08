@@ -203,7 +203,7 @@ class SideBar extends Component {
 
   render() {
     var { visible, amount, ui_amount, currency_0_balance, currency_1_balance, bignumbers, loading, button_loading, button_error, button_success, owner } = this.state
-    var { currencies, toggleSidebar, sidebar_info } = this.props
+    var { currencies, toggleSidebar, sidebar_info, options } = this.props
 
     // Invert the type since the action do as a taker is the inverse of the action of the maker
     var action = sidebar_info["type"] === "BUY" ? "SELL" : "BUY"
@@ -301,15 +301,16 @@ class SideBar extends Component {
                   placeholder='Enter Amount...'
                   value={ui_amount}
                   onChange={(e) => { this.handleUserChange(e.target.value) }}
+                  disabled={options.readOnly}
                 />
               </div>
             </Form.Field>
             <Button.Group id="Side_bar-mini-buttons" size='mini' basic>
-              <Button onClick={ () => this.handleUserChange("") } >0%</Button>
-              <Button onClick={ () => this.handleAmountPercentageChange(giving["max_take"].div(bignumbers[4])) } >25%</Button>
-              <Button onClick={ () => this.handleAmountPercentageChange(giving["max_take"].div(bignumbers[2])) } >50%</Button>
-              <Button onClick={ () => this.handleAmountPercentageChange(giving["max_take"].mul(bignumbers[3]).div(bignumbers[4])) } >75%</Button>
-              <Button onClick={ () => this.handleAmountPercentageChange(giving["max_take"]) } >100%</Button>
+              <Button disabled={options.readOnly} onClick={ () => this.handleUserChange("") } >0%</Button>
+              <Button disabled={options.readOnly} onClick={ () => this.handleAmountPercentageChange(giving["max_take"].div(bignumbers[4])) } >25%</Button>
+              <Button disabled={options.readOnly} onClick={ () => this.handleAmountPercentageChange(giving["max_take"].div(bignumbers[2])) } >50%</Button>
+              <Button disabled={options.readOnly} onClick={ () => this.handleAmountPercentageChange(giving["max_take"].mul(bignumbers[3]).div(bignumbers[4])) } >75%</Button>
+              <Button disabled={options.readOnly} onClick={ () => this.handleAmountPercentageChange(giving["max_take"]) } >100%</Button>
             </Button.Group>
           </Form>
           <div className="Side_bar-info-item">
@@ -317,7 +318,7 @@ class SideBar extends Component {
             <div className="Side_bar-info-content">{giving["ui_will_receive"].toString() + " " + giving["receive_currency"]}</div>
           </div>
 
-          <Button className="BuySell-button" loading={button_loading} color={action === "BUY" ? "green" : "red"} disabled={button_text !== action + " " + currencies[0] || giving["will_receive"].lte(ethers.utils.bigNumberify("1000")) || ethers.utils.bigNumberify(amount).gt(giving["max_take"])} onClick={() => this.executeTrade(giving["will_receive"]) }>{button_text}</Button>
+          <Button className="BuySell-button" loading={button_loading} color={action === "BUY" ? "green" : "red"} disabled={options.readOnly || button_text !== action + " " + currencies[0] || giving["will_receive"].lte(ethers.utils.bigNumberify("1000")) || ethers.utils.bigNumberify(amount).gt(giving["max_take"])} onClick={() => this.executeTrade(giving["will_receive"]) }>{button_text}</Button>
 
         </Sidebar>
       </div>

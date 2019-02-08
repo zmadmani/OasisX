@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
+import { Link } from 'react-router-dom'
 import { ethers } from 'ethers';
-import { Header, Table, Checkbox, Icon } from 'semantic-ui-react'
+import { Header, Table, Checkbox, Icon, Button } from 'semantic-ui-react'
 import './infobar.css'
 
 import WrapStation from './wrapstation/wrapstation'
@@ -40,39 +41,41 @@ class Infobar extends Component {
 
   async updateInfo() {
     const { options } = this.props
-    let account = await options.signer.getAddress()
-    let market_address = options.contracts.Market.address
 
-    const weth_balance = await options.contracts.WETH.balanceOf(account)
-    const dai_balance = await options.contracts.DAI.balanceOf(account)
-    const mkr_balance = await options.contracts.MKR.balanceOf(account)
-    
-    const weth_approval = await options.contracts.WETH.allowance(account, market_address)
-    const dai_approval = await options.contracts.DAI.allowance(account, market_address)
-    const mkr_approval = await options.contracts.MKR.allowance(account, market_address)
-    
-    var eth_balance = await options.provider.getBalance(account)
+    if(!options.readOnly) {
+      let account = await options.signer.getAddress()
+      let market_address = options.contracts.Market.address
 
-    var currencies = {
-      "WETH": {
-        balance: weth_balance.toString(),
-        approved: weth_approval.toString()
-      },
-      "DAI": {
-        balance: dai_balance.toString(),
-        approved: dai_approval.toString()
-      },
-      "MKR": {
-        balance: mkr_balance.toString(),
-        approved: mkr_approval.toString()
-      },
-      "ETH": {
-        balance: eth_balance.toString(),
-        approved: "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+      const weth_balance = await options.contracts.WETH.balanceOf(account)
+      const dai_balance = await options.contracts.DAI.balanceOf(account)
+      const mkr_balance = await options.contracts.MKR.balanceOf(account)
+      
+      const weth_approval = await options.contracts.WETH.allowance(account, market_address)
+      const dai_approval = await options.contracts.DAI.allowance(account, market_address)
+      const mkr_approval = await options.contracts.MKR.allowance(account, market_address)
+      
+      var eth_balance = await options.provider.getBalance(account)
+
+      var currencies = {
+        "WETH": {
+          balance: weth_balance.toString(),
+          approved: weth_approval.toString()
+        },
+        "DAI": {
+          balance: dai_balance.toString(),
+          approved: dai_approval.toString()
+        },
+        "MKR": {
+          balance: mkr_balance.toString(),
+          approved: mkr_approval.toString()
+        },
+        "ETH": {
+          balance: eth_balance.toString(),
+          approved: "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+        }
       }
+      this.setState({ currencies, account })
     }
-
-    this.setState({ currencies, account })
 
     setTimeout(this.updateInfo, 3000)
   }
@@ -150,9 +153,15 @@ class Infobar extends Component {
       x_icon = null
     }
 
+    var username = <Button primary as={Link} to={'/login'} fluid onClick={closeSidebar} >Login</Button>
+    if(!options.readOnly) {
+      username = <HumanName address={account} />
+    }
+
+
     return (
       <div id='Infobar'>
-        <div className='Infobar-header'><HumanName address={account} />{x_icon}</div>
+        <div className='Infobar-header'>{username}{x_icon}</div>
         <Table basic='very' padded={"very"} striped unstackable id="Infobar-table">
           <Table.Header id="Infobar-table-header">
             <Table.Row>
@@ -175,7 +184,7 @@ class Infobar extends Component {
                   </Table.Cell>
 
                   <Table.Cell  textAlign='left'>
-                    <Checkbox toggle disabled={item.name === "ETH"} checked={item.approved} onClick={ () => this.toggleApproval(item.name, item.approved) } />
+                    <Checkbox toggle disabled={item.name === "ETH" || options.readOnly} checked={item.approved} onClick={ () => this.toggleApproval(item.name, item.approved) } />
                   </Table.Cell>
                 </Table.Row>
               )

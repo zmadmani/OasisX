@@ -101,6 +101,11 @@ class MarketHistory extends Component {
     var { currencies, orders } = this.props
 
     this.max_order = this.getMax(orders)
+    var background_item = null
+
+    if(orders.length === 0) {
+      background_item = (<div id="Leaderboard-empty">Loading...</div>)
+    }
 
     return (
       <div className="MarketHistory">
@@ -134,6 +139,7 @@ class MarketHistory extends Component {
             </List>
           )}
         </AutoSizer>
+        {background_item}
       </div>
     );
   }

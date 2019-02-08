@@ -149,7 +149,7 @@ class WrapStation extends Component {
   }
 
   render() {
-    var { weth_balance, eth_balance } = this.props
+    var { weth_balance, eth_balance, options } = this.props
     var { ui_amount_wrap, ui_amount_unwrap, bignumbers, loading, success, error } = this.state
 
     // Convert to BigNumbers since they will have potential math done on them (risk of overflow/underflow)
@@ -178,18 +178,18 @@ class WrapStation extends Component {
                 labelPosition='right'
                 placeholder='Enter Amount ETH...'
                 value={ui_amount_wrap}
-                disabled={ loading[0] || error[0] || success[0] }
+                disabled={ loading[0] || error[0] || success[0] || options.readOnly }
                 onChange={(e) => { this.handleUserUpdate('ui_amount_wrap', e.target.value) }}
               />
             </Form.Field>
-            <Form.Button disabled={ loading[0] || error[0] || success[0] || ui_amount_wrap === "" } loading={loading[0]} width={4} className="WrapStation-button" color={error[0] ? 'red' : 'green'} size='small' onClick={ () => this.onWrap() } >{button_text[0]}</Form.Button>
+            <Form.Button disabled={ loading[0] || error[0] || success[0] || options.readOnly || ui_amount_wrap === "" } loading={loading[0]} width={4} className="WrapStation-button" color={error[0] ? 'red' : 'green'} size='small' onClick={ () => this.onWrap() } >{button_text[0]}</Form.Button>
           </Form.Group>
           <Button.Group className="WrapStation-mini-buttons" size='mini' basic inverted>
-            <Button disabled={ loading[0] || error[0] || success[0] } onClick={ () => this.handleUserUpdate("ui_amount_wrap", "") } >0%</Button>
-            <Button disabled={ loading[0] || error[0] || success[0] } onClick={ () => this.handlePercentUpdate("amount_wrap", eth_balance.div(bignumbers[4])) } >25%</Button>
-            <Button disabled={ loading[0] || error[0] || success[0] } onClick={ () => this.handlePercentUpdate("amount_wrap", eth_balance.div(bignumbers[2])) } >50%</Button>
-            <Button disabled={ loading[0] || error[0] || success[0] } onClick={ () => this.handlePercentUpdate("amount_wrap", eth_balance.mul(bignumbers[3]).div(bignumbers[4])) } >75%</Button>
-            <Button disabled={ loading[0] || error[0] || success[0] } onClick={ () => this.handlePercentUpdate("amount_wrap", eth_balance.mul(bignumbers[9]).div(bignumbers[10])) } >90%</Button>
+            <Button disabled={ loading[0] || error[0] || success[0] || options.readOnly } onClick={ () => this.handleUserUpdate("ui_amount_wrap", "") } >0%</Button>
+            <Button disabled={ loading[0] || error[0] || success[0] || options.readOnly } onClick={ () => this.handlePercentUpdate("amount_wrap", eth_balance.div(bignumbers[4])) } >25%</Button>
+            <Button disabled={ loading[0] || error[0] || success[0] || options.readOnly } onClick={ () => this.handlePercentUpdate("amount_wrap", eth_balance.div(bignumbers[2])) } >50%</Button>
+            <Button disabled={ loading[0] || error[0] || success[0] || options.readOnly } onClick={ () => this.handlePercentUpdate("amount_wrap", eth_balance.mul(bignumbers[3]).div(bignumbers[4])) } >75%</Button>
+            <Button disabled={ loading[0] || error[0] || success[0] || options.readOnly } onClick={ () => this.handlePercentUpdate("amount_wrap", eth_balance.mul(bignumbers[9]).div(bignumbers[10])) } >90%</Button>
           </Button.Group>
           <div className="WrapStation-headers">Unwrap</div>
           <Form.Group unstackable className="WrapStation-formgroup">
@@ -199,18 +199,18 @@ class WrapStation extends Component {
                 labelPosition='right'
                 placeholder='Enter Amount WETH...'
                 value={ui_amount_unwrap}
-                disabled={ loading[1] || error[1] || success[1] }
+                disabled={ loading[1] || error[1] || success[1] || options.readOnly }
                 onChange={(e) => { this.handleUserUpdate('ui_amount_unwrap', e.target.value) }}
               />
             </Form.Field>
-            <Form.Button disabled={ loading[1] || error[1] || success[1] || ui_amount_unwrap === "" } loading={loading[1]} width={4} className="WrapStation-button" color={error[1] ? 'red' : 'green'} size='small' onClick={ () => this.onUnwrap() } >{button_text[1]}</Form.Button>
+            <Form.Button disabled={ loading[1] || error[1] || success[1] || options.readOnly || ui_amount_unwrap === "" } loading={loading[1]} width={4} className="WrapStation-button" color={error[1] ? 'red' : 'green'} size='small' onClick={ () => this.onUnwrap() } >{button_text[1]}</Form.Button>
           </Form.Group>
           <Button.Group className="WrapStation-mini-buttons" size='mini' basic inverted>
-            <Button disabled={ loading[1] || error[1] || success[1] } onClick={ () => this.handleUserUpdate("ui_amount_unwrap", "") } >0%</Button>
-            <Button disabled={ loading[1] || error[1] || success[1] } onClick={ () => this.handlePercentUpdate("amount_unwrap", weth_balance.div(bignumbers[4])) } >25%</Button>
-            <Button disabled={ loading[1] || error[1] || success[1] } onClick={ () => this.handlePercentUpdate("amount_unwrap", weth_balance.div(bignumbers[2])) } >50%</Button>
-            <Button disabled={ loading[1] || error[1] || success[1] } onClick={ () => this.handlePercentUpdate("amount_unwrap", weth_balance.mul(bignumbers[3]).div(bignumbers[4])) } >75%</Button>
-            <Button disabled={ loading[1] || error[1] || success[1] } onClick={ () => this.handlePercentUpdate("amount_unwrap", weth_balance) } >100%</Button>
+            <Button disabled={ loading[1] || error[1] || success[1] || options.readOnly } onClick={ () => this.handleUserUpdate("ui_amount_unwrap", "") } >0%</Button>
+            <Button disabled={ loading[1] || error[1] || success[1] || options.readOnly } onClick={ () => this.handlePercentUpdate("amount_unwrap", weth_balance.div(bignumbers[4])) } >25%</Button>
+            <Button disabled={ loading[1] || error[1] || success[1] || options.readOnly } onClick={ () => this.handlePercentUpdate("amount_unwrap", weth_balance.div(bignumbers[2])) } >50%</Button>
+            <Button disabled={ loading[1] || error[1] || success[1] || options.readOnly } onClick={ () => this.handlePercentUpdate("amount_unwrap", weth_balance.mul(bignumbers[3]).div(bignumbers[4])) } >75%</Button>
+            <Button disabled={ loading[1] || error[1] || success[1] || options.readOnly } onClick={ () => this.handlePercentUpdate("amount_unwrap", weth_balance) } >100%</Button>
           </Button.Group>
         </Form>
       </div>

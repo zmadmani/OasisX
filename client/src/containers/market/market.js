@@ -345,12 +345,18 @@ class Market extends Component {
     const all_open_orders = open_buy_orders.concat(open_sell_orders)
     all_open_orders.sort(function(a, b) { return parseInt(a[3]) > parseInt(b[3]) ? 1 : -1 })
 
-    const activity_panes = [
-      { menuItem: 'Open Orders', render: () => <Tab.Pane className="Market-tab-pane"><MyOrders currencies={currencies} options={options} orders={all_open_orders} account={account} /></Tab.Pane> },
-      { menuItem: 'My History', render: () => <Tab.Pane className="Market-tab-pane"><MyHistory currencies={currencies} options={options} orders={past_orders} account={account} /></Tab.Pane> },
+    var activity_panes = [
       { menuItem: 'Market History', render: () => <Tab.Pane className="Market-tab-pane"><MarketHistory currencies={currencies} options={options} orders={past_orders} /></Tab.Pane> },
       { menuItem: '5-D Leaderboard', render: () => <Tab.Pane className="Market-tab-pane"><Leaderboard currencies={currencies} account={account} options={options} orders={past_orders} /></Tab.Pane> },
     ]
+
+    if(!options.readOnly) {
+      var logged_in_panes = [
+        { menuItem: 'Open Orders', render: () => <Tab.Pane className="Market-tab-pane"><MyOrders currencies={currencies} options={options} orders={all_open_orders} account={account} /></Tab.Pane> },
+        { menuItem: 'My History', render: () => <Tab.Pane className="Market-tab-pane"><MyHistory currencies={currencies} options={options} orders={past_orders} account={account} /></Tab.Pane> },
+      ]
+      activity_panes = logged_in_panes.concat(activity_panes)
+    }
 
     const last_order = past_orders.length > 0 ? past_orders[0] : ""
 
