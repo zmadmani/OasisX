@@ -15,12 +15,12 @@
     ],
     "market":{
         "kovan":{
-            "address":"0xdB3b642eBc6Ff85A3AB335CFf9af2954F9215994",
-            "blockNumber":5216718
+            "address":"0x4A6bC4e803c62081ffEbCc8d227B5a87a58f1F8F",
+            "blockNumber":10298690
         },
         "main":{
-            "address":"0xB7ac09C2c0217B07d7c103029B4918a2C401eeCB",
-            "blockNumber":6863999
+            "address":"0x39755357759ce0d7f32dc8dc45414cca409ae24e",
+            "blockNumber":7183773
         }
     },
     "otcSupportMethods":{
