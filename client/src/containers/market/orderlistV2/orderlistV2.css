@@ -30,6 +30,20 @@
 	line-height: 40px;
 }
 
+.OrderListV2-table-entry-grid {
+	margin-top: 0px !important;
+}
+
+.OrderListV2-table-entry-grid-img {
+	height: 40px;
+	padding: 10px 1rem !important;
+}
+
+.OrderListV2-table-entry-grid-col {
+	height: 40px !important;
+	padding: 0px 1rem !important;
+}
+
 #OrderListV2-table-middle {
 	font-weight: 600;
 	background-color: black;

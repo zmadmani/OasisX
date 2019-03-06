@@ -1,21 +1,9 @@
-import React, { Component } from 'react'
-import { Transition } from 'semantic-ui-react'
-import './home.css'
+import React, { Component } from 'react';
+import { Transition } from 'semantic-ui-react';
+import './home.css';
 
 class Home extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-    }
-  }
-
-  componentDidMount() {
-
-  }
-
-  componentDidUpdate() {
-  }
-
+  // Simple Home landing static page.
   render() {
     return (
       <div id="Home">

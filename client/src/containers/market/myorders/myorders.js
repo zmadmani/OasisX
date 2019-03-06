@@ -1,69 +1,60 @@
-import React, { Component } from 'react'
-import { Table, Button } from 'semantic-ui-react'
+// Import Major Dependencies
+import React, { Component } from 'react';
+import { Table, Button } from 'semantic-ui-react';
 
-import './myorders.css'
+// Import CSS Files
+import './myorders.css';
+
+// Import src code
+import { numberWithCommas } from '../../utils/general';
 
 class MyOrders extends Component {
   constructor(props) {
-    super(props)
+    super(props);
     this.state = {
-    }
-
+    };
   }
 
-  componentDidMount() {
-  }
-
-  // shouldComponentUpdate(nextProps, nextState) {
-  //   if(nextState.orders !== this.state.orders) {
-  //     return true
-  //   } else {
-  //     return false
-  //   }
-  // }
-
+  // Filter to the open orders that match the current account address
   getMyOrders() {
-    var { orders, account } = this.props
-    var myOrders = []
-    for(var i = 0; i < orders.length; i++) {
+    const { orders, account } = this.props;
+    let myOrders = [];
+    for(let i = 0; i < orders.length; i++) {
       if(orders[i]["maker"] === account) {
-        myOrders.push(orders[i])
+        myOrders.push(orders[i]);
       }
     }
-
-    return myOrders
+    return myOrders;
   }
 
-  numberWithCommas(x) {
-      var parts = x.toString().split(".");
-      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-      return parts.join(".");
-  }
-
+  // Handler to cancel an order
   async cancelOrder(id) {
-    var { Market } = this.props.options.contracts
-    console.log("CANCEL ORDER " + id)
+    const { Market } = this.props.options.contracts;
+    console.log("CANCEL ORDER " + id);
     try {
-      var tx = await Market.cancel(id)
-      await tx.wait()
+      const tx = await Market.cancel(id);
+      await tx.wait();
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
   }
 
+  /** ################# RENDER ################# **/
+
   render() {
-    var { currencies } = this.props
+    const { currencies } = this.props;
 
-    var orders_table = null
-    var background_item = null
-    var orders = this.getMyOrders()
+    let orders_table = null;
+    let background_item = null;
+    const orders = this.getMyOrders();
 
+    // If there are no orders then render an emtpy list
     if(orders.length === 0) {
-      background_item = (<div id="MyOrders-empty">NO ORDERS</div>)
+      background_item = (<div id="MyOrders-empty">NO ORDERS</div>);
     } else {
       orders_table = (<Table.Body id="MyOrders-tableBody">
             {orders.map((item, index) => {
-              var price = item["type"] === "BUY" ? (<span className="green MyOrders-color">{this.numberWithCommas(item["price"])}</span>) : (<span className="red MyOrders-color">{this.numberWithCommas(item["price"])}</span>)
+              var price = item["type"] === "BUY" ? (<span className="green MyOrders-color">{numberWithCommas(item["price"])}</span>) : (<span className="red MyOrders-color">{numberWithCommas(item["price"])}</span>)
               return (
                 <Table.Row key={index}>
                   <Table.Cell  textAlign='left'>
@@ -75,16 +66,16 @@ class MyOrders extends Component {
                   </Table.Cell>
 
                   <Table.Cell>
-                    <div className='MyOrders-table-entry'>{this.numberWithCommas(item["curr_0_amt"])}</div>
+                    <div className='MyOrders-table-entry'>{numberWithCommas(item["curr_0_amt"])}</div>
                   </Table.Cell>
 
                   <Table.Cell  textAlign='left'>
-                    <div className='MyOrders-table-entry'>{this.numberWithCommas(item["curr_1_amt"])}</div>
+                    <div className='MyOrders-table-entry'>{numberWithCommas(item["curr_1_amt"])}</div>
                   </Table.Cell>
                 </Table.Row>
               )
             })}
-          </Table.Body>)
+          </Table.Body>);
     }
 
     return (

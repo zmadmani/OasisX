@@ -1,9 +1,8 @@
-import React, { Component } from 'react'
+// Import Major Dependencies
+import React, { Component } from 'react';
 import { ethers } from 'ethers';
-
 import { format } from "d3-format";
 import { timeFormat } from "d3-time-format";
-
 import { ChartCanvas, Chart } from "react-stockcharts";
 import { BarSeries, CandlestickSeries, LineSeries } from "react-stockcharts/lib/series";
 import { XAxis, YAxis } from "react-stockcharts/lib/axes";
@@ -14,8 +13,10 @@ import { fitWidth } from "react-stockcharts/lib/helper";
 import { last } from "react-stockcharts/lib/utils";
 import { ema } from "react-stockcharts/lib/indicator";
 
-import './chart.css'
+// Import CSS Files
+import './chart.css';
 
+// Set the appearance of the candle chart
 const candlesAppearance = {
   wickStroke: "#7a8692",
   fill: function fill(d) {
@@ -23,59 +24,52 @@ const candlesAppearance = {
   },
   widthRatio: 0.8,
   opacity: 1,
-}
+};
 
 class CandleChart extends Component {
   constructor(props) {
-    super(props)
+    super(props);
     this.state = {
-    }
-  }
-
-  componentDidMount() {
-  }
-
-  componentWillUnmount() {
-  }
-
-  componentWillMount() {
+    };
   }
   
   shouldComponentUpdate(nextProps, nextState) {
+    // Only update if there are a different number of orders being piped in
     if(this.props.orders.length !== nextProps.orders.length) {
-      return true
+      return true;
     } else {
-      return false
+      return false;
     }
   }
 
+  // Convert raw order data into the processed chart points
   buildChartPoints(orders) {
-    var data = []
+    let data = [];
 
-    var first_timestamp = orders[orders.length - 1]['raw_timestamp']
-    first_timestamp = first_timestamp - (first_timestamp % (3600000/4))
+    let first_timestamp = orders[orders.length - 1]['raw_timestamp'];
+    first_timestamp = first_timestamp - (first_timestamp % (3600000/4));
 
-    var curr_candle = {
+    let curr_candle = {
       date: new Date(first_timestamp),
       open: orders[orders.length-1]['price'],
       high: orders[orders.length-1]['price'],
       low: orders[orders.length-1]['price'],
       close: orders[orders.length-1]['price'],
       volume: parseFloat(ethers.utils.formatUnits(orders[orders.length-1]['curr_1'], 'ether'))
-    }
-    var end_timestamp = first_timestamp + (3600000/4)
-    for(var i = orders.length-2; i >= 0; i--) {
-      var order = orders[i]
+    };
+    let end_timestamp = first_timestamp + (3600000/4);
+    for(let i = orders.length-2; i >= 0; i--) {
+      const order = orders[i];
       if(order["raw_timestamp"] < end_timestamp) {
-        curr_candle['volume'] += parseFloat(ethers.utils.formatUnits(order['curr_1'], 'ether'))
-        curr_candle['close'] = order['price']
+        curr_candle['volume'] += parseFloat(ethers.utils.formatUnits(order['curr_1'], 'ether'));
+        curr_candle['close'] = order['price'];
         if(order['price'] > curr_candle['high']) {
-          curr_candle['high'] = order['price']
+          curr_candle['high'] = order['price'];
         } else if(order['price'] < curr_candle['low']) {
-          curr_candle['low'] = order['price']
+          curr_candle['low'] = order['price'];
         }
       } else {
-        data.push(curr_candle)
+        data.push(curr_candle);
         curr_candle = {
           date: new Date(end_timestamp),
           open: curr_candle['close'],
@@ -83,12 +77,14 @@ class CandleChart extends Component {
           low: Math.min(order['price'], curr_candle['close']),
           close: order['price'],
           volume: parseFloat(ethers.utils.formatUnits(order['curr_1'], 'ether'))
-        }
-        end_timestamp = end_timestamp + (3600000/4)
+        };
+        end_timestamp = end_timestamp + (3600000/4);
       }
     }
-    return data
+    return data;
   }
+
+  /** ################# RENDER ################# **/
 
   render() {
     var { width, ratio, orders } = this.props

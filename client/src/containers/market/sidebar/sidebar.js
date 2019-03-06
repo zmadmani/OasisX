@@ -1,14 +1,18 @@
-import React, { Component } from 'react'
+// Import Major Dependencies
+import React, { Component } from 'react';
 import { ethers } from 'ethers';
-import { Sidebar, Segment, Icon, Input, Form, Button, Loader } from 'semantic-ui-react'
+import { Sidebar, Segment, Icon, Input, Form, Button, Loader } from 'semantic-ui-react';
 
-import HumanName from '../../utils/humanname/humanname'
+// Import CSS Files
+import './sidebar.css';
 
-import './sidebar.css'
+// Import src code
+import HumanName from '../../utils/humanname/humanname';
+import { numberWithCommas } from '../../utils/general';
 
 class SideBar extends Component {
   constructor(props) {
-    super(props)
+    super(props);
     this.state = {
       loading: false,
       visible: false,
@@ -23,196 +27,207 @@ class SideBar extends Component {
       button_loading: false,
       button_success: false,
       button_error: false
-    }
+    };
 
-    this.updateInfo = this.updateInfo.bind(this)
-    this.stopLoading = this.stopLoading.bind(this)
-    this.flashError = this.flashError.bind(this)
-    this.flashSuccess = this.flashSuccess.bind(this)
+    this.updateInfo = this.updateInfo.bind(this);
+    this.stopLoading = this.stopLoading.bind(this);
+    this.flashError = this.flashError.bind(this);
+    this.flashSuccess = this.flashSuccess.bind(this);
   }
 
   // Get the balances for each of the currencies since we will need that throughout the component
   componentDidMount() {
-    this.generateBigNumbers()
-    this.updateInfo()
+    this.generateBigNumbers();
+    this.updateInfo();
   }
 
+  // Update the information in the sidebar and recursively call itself every 3 seconds
   async updateInfo() {
-    var { account, currencies, options } = this.props
+    const { account, currencies, options } = this.props;
     if(this.state.visible && this.state.id) {
-      const currency_0_balance = await options.contracts[currencies[0]].balanceOf(account)
-      const currency_1_balance = await options.contracts[currencies[1]].balanceOf(account)
-      const info = await options.contracts.Market.getOffer(this.state.id)
-      const owner = await options.contracts.Market.getOwner(this.state.id)
-      this.setState({ currency_0_balance, currency_1_balance, info, owner })
+      const currency_0_balance = await options.contracts[currencies[0]].balanceOf(account);
+      const currency_1_balance = await options.contracts[currencies[1]].balanceOf(account);
+      const info = await options.contracts.Market.getOffer(this.state.id);
+      const owner = await options.contracts.Market.getOwner(this.state.id);
+      this.setState({ currency_0_balance, currency_1_balance, info, owner });
     }
-    setTimeout(this.updateInfo, 1000)
+    setTimeout(this.updateInfo, 3000);
   }
 
+  // Generate BigNumber represenatation of integers for easy arithmetic later
   generateBigNumbers() {
-    var bignumbers = {}
-    for(var i = 0; i <= 10; i++) {
-      var key = i
-      bignumbers[key] = ethers.utils.bigNumberify(key)
+    let bignumbers = {};
+    for(let i = 0; i <= 10; i++) {
+      const key = i;
+      bignumbers[key] = ethers.utils.bigNumberify(key);
     }
-
-    this.setState({ bignumbers })
+    this.setState({ bignumbers });
   }
 
+  // Helper function to set loading to false
   stopLoading() {
-    this.setState({ loading: false })
+    this.setState({ loading: false });
   }
 
   // Need to update visible and the side_bar info key if a new order is passed in
   async componentWillReceiveProps(nextProps) {
+    // Update if the new props for visibility are changed
     if(nextProps.visible !== this.props.visible) {
-      this.setState({ visible: nextProps.visible })
+      this.setState({ visible: nextProps.visible });
       if(nextProps.visible === false) {
-        this.setState({ info: null, owner: null, amount: '0', ui_amount: '', button_success: false, button_error: false, button_loading: false })
+        this.setState({ info: null, owner: null, amount: '0', ui_amount: '', button_success: false, button_error: false, button_loading: false });
       }
     }
+    // Update if the information for the sidebar has changed
     if(nextProps.sidebar_info !== this.props.sidebar_info) {
-      this.setState({ loading: true })
-      const info = await this.props.options.contracts.Market.getOffer(nextProps.sidebar_info["id"])
-      const owner = await this.props.options.contracts.Market.getOwner(nextProps.sidebar_info["id"])
-      this.setState({ id: nextProps.sidebar_info["id"], info, owner, amount: '0', ui_amount: '' })
-      setTimeout(this.stopLoading, 50)
+      this.setState({ loading: true });
+      const info = await this.props.options.contracts.Market.getOffer(nextProps.sidebar_info["id"]);
+      const owner = await this.props.options.contracts.Market.getOwner(nextProps.sidebar_info["id"]);
+      this.setState({ id: nextProps.sidebar_info["id"], info, owner, amount: '0', ui_amount: '' });
+      // Add artificial delay to show the new results are really updated
+      setTimeout(this.stopLoading, 50);
     }
   }
 
+  // Helper function to flash success on tx success
   flashSuccess() {
-    var { toggleSidebar } = this.props
-    this.setState({ button_success : true, button_loading: false })
-    setTimeout(toggleSidebar, 1500)
+    const { toggleSidebar } = this.props;
+    this.setState({ button_success : true, button_loading: false });
+    setTimeout(toggleSidebar, 1500);
   }
 
+  // Helper function to flash error on tx failure
   flashError() {
-    this.setState({ button_error: true, button_loading: false })
-    setTimeout(() => this.setState({ button_error: false }), 1500)
+    this.setState({ button_error: true, button_loading: false });
+    setTimeout(() => this.setState({ button_error: false }), 1500);
   }
 
   // Most important function in the entire file since it actually interfaces
   // and edits the blockchain.
-  executeTrade = async (will_receive) => {
-    var { sidebar_info } = this.props
+  async executeTrade(will_receive) {
+    const { sidebar_info } = this.props;
 
-    var id = sidebar_info["id"]
+    const id = sidebar_info["id"];
 
     // Log the inputs for the transaction so that you can always be 100% positive what is being sent
-    var inputs = {
+    const inputs = {
       "id": id,
       "will_receive": will_receive.toString(),
       "will_receive_wholenums": ethers.utils.formatUnits(will_receive.toString(), 'ether')
-    }
-    console.log(inputs)
+    };
+    console.log(inputs);
 
     try {
-      var tx = await this.props.options.contracts.Market.buy(id, will_receive.toString())
-      this.setState({ button_loading: true })
-      await tx.wait()
-      this.flashSuccess()
+      const tx = await this.props.options.contracts.Market.buy(id, will_receive.toString());
+      this.setState({ button_loading: true });
+      await tx.wait();
+      this.flashSuccess();
     } catch(error) {
-      this.flashError()
+      this.flashError();
     }
   }
 
-  numberWithCommas(x) {
-    var parts = x.toString().split(".");
-    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    return parts.join(".");
-  }
-
+  // Handler for when user changes the amount to be bought
   handleUserChange(value) {
-    var internal_value = 0
+    let internal_value = 0;
     try{
+      // Check to see if the value is not just white space
       if(/\S/.test(value)) {
-        internal_value = ethers.utils.parseUnits(value.toString(), 'ether').toString()
+        internal_value = ethers.utils.parseUnits(value.toString(), 'ether').toString();
       }
     } catch (err) {
-      console.log(err)
-      return
+      console.log(err);
+      return;
     }
-    this.setState({ ui_amount: value, amount: internal_value })
+    this.setState({ ui_amount: value, amount: internal_value });
   }
 
+  // Handler for when user uses percentage tool to update amount
   handleAmountPercentageChange(value) {
-    var ui_value = ethers.utils.formatUnits(value.toString(), 'ether')
-    this.setState({ amount: value.toString(), ui_amount: ui_value })
+    const ui_value = ethers.utils.formatUnits(value.toString(), 'ether');
+    this.setState({ amount: value.toString(), ui_amount: ui_value });
   }
 
   // So we were passed in the most up to date info the older component had.
   // However this can and will change if it was stale or other people are taking the order.
   // This keeps the info up to date and fallsback onto the old data if an error happens.
   getUpdatedInfo() {
-    var { info } = this.state
-    var { sidebar_info } = this.props
+    const { info } = this.state;
+    const { sidebar_info } = this.props;
 
-    var info_obj = {}
+    let info_obj = {};
+    // If info is empty then return null
     if(!info) {
-      return null
+      return null;
     }
 
-    var buy_amt = info[0]
-    var pay_amt = info[2]
+    const buy_amt = info[0];
+    const pay_amt = info[2];
+
+    // Build information object depending on the types
     if(sidebar_info["type"] === "BUY") {
       info_obj = {
         "price": sidebar_info["price"],
         "curr_0_amt": pay_amt.toString(),
         "curr_1_amt": buy_amt.toString()
-      }
+      };
     } else {
       info_obj = {
         "price": sidebar_info["price"],
         "curr_0_amt": buy_amt.toString(),
         "curr_1_amt": pay_amt.toString()
-      }
+      };
     }
 
-    return info_obj
+    return info_obj;
   }
 
+  // Calculate how much currency the user will receive
   calcWillReceive() {
-    var { amount } = this.state
+    const { amount } = this.state;
 
     // Don't forget that these are flipped from the actual smart contract docs since
     // WE are the counterparties so buy_amt/pay_amt is flipped from expected
-    var buy_amt = ethers.utils.bigNumberify(this.state.info[0])
-    var pay_amt = ethers.utils.bigNumberify(this.state.info[2])
+    const buy_amt = ethers.utils.bigNumberify(this.state.info[0]);
+    const pay_amt = ethers.utils.bigNumberify(this.state.info[2]);
 
-    let amount_bn = ethers.utils.bigNumberify(amount)
+    let amount_bn = ethers.utils.bigNumberify(amount);
     try {
-      let will_receive = amount_bn.mul(buy_amt).div(pay_amt)
-      return will_receive
+      let will_receive = amount_bn.mul(buy_amt).div(pay_amt);
+      return will_receive;
     } catch(err) {
-      return ethers.utils.bigNumberify("0")
+      return ethers.utils.bigNumberify("0");
     }
   }
 
+  // Get the max amount possible to take from this order given the balances and offer
   getMaxTake() {
-    var { sidebar_info } = this.props
-    var { info, currency_0_balance, currency_1_balance } = this.state
+    const { sidebar_info } = this.props;
+    const { info, currency_0_balance, currency_1_balance } = this.state;
 
-    var pay_amt = ethers.utils.bigNumberify(info[2])
-    var balance = sidebar_info["type"] === "BUY" ? ethers.utils.bigNumberify(currency_0_balance) : ethers.utils.bigNumberify(currency_1_balance)
+    const pay_amt = ethers.utils.bigNumberify(info[2]);
+    const balance = sidebar_info["type"] === "BUY" ? ethers.utils.bigNumberify(currency_0_balance) : ethers.utils.bigNumberify(currency_1_balance);
     if(balance.lt(pay_amt)) {
-      return balance
+      return balance;
     } else {
-      return pay_amt
+      return pay_amt;
     }
   }
+
+  /** ################# RENDER ################# **/
 
   render() {
-    var { visible, amount, ui_amount, currency_0_balance, currency_1_balance, bignumbers, loading, button_loading, button_error, button_success, owner } = this.state
-    var { currencies, toggleSidebar, sidebar_info, options } = this.props
+    const { visible, amount, ui_amount, currency_0_balance, currency_1_balance, bignumbers, loading, button_loading, button_error, button_success, owner } = this.state;
+    const { currencies, toggleSidebar, sidebar_info, options } = this.props;
 
     // Invert the type since the action do as a taker is the inverse of the action of the maker
-    var action = sidebar_info["type"] === "BUY" ? "SELL" : "BUY"
-    var subtitle = action === "BUY" ? (<span className="green">{action}</span>) : (<span className="red">SELL</span>)
+    const action = sidebar_info["type"] === "BUY" ? "SELL" : "BUY";
+    const subtitle = action === "BUY" ? (<span className="green">{action}</span>) : (<span className="red">SELL</span>);
 
     // So we were passed in the most up to date info the older component had.
     // However this can and will change if it was stale or other people are taking the order.
     // This keeps the info up to date and fallsback onto the old data if an error happens.
-    var updated_info = this.getUpdatedInfo()
+    const updated_info = this.getUpdatedInfo();
     if(!updated_info || loading) {
       return (
         <div className="Side_bar">
@@ -224,11 +239,11 @@ class SideBar extends Component {
             <Loader active>Loading</Loader>
           </Sidebar>
         </div>
-      )
+      );
     }
 
     // Build object that swaps values for buys and sells so that rendering is simple
-    var giving = {
+    let giving = {
       "currency": null,
       "receive_currency": null,
       "balance": 0,
@@ -236,29 +251,29 @@ class SideBar extends Component {
       "max_take": this.getMaxTake(),
       "will_receive": this.calcWillReceive(),
       "maker": owner ? <HumanName address={owner} /> : "Loading...",
-    }
-    giving["ui_will_receive"] = Math.round(ethers.utils.formatUnits(giving["will_receive"].toString(), 'ether') * 1000) / 1000
+    };
+    giving["ui_will_receive"] = Math.round(ethers.utils.formatUnits(giving["will_receive"].toString(), 'ether') * 1000) / 1000;
 
     if(action === "BUY") {
-      giving["currency"] = currencies[1]
-      giving["receive_currency"] = currencies[0]
-      giving["balance"] = ethers.utils.bigNumberify(currency_1_balance)
-      giving["ui_balance"] = Math.round(ethers.utils.formatUnits(currency_1_balance.toString(), 'ether') * 1000) / 1000
-      giving["offered"] = ethers.utils.bigNumberify(updated_info["curr_1_amt"])
-      giving["ui_offered"] = Math.round(ethers.utils.formatUnits(updated_info["curr_1_amt"], 'ether') * 1000) / 1000
+      giving["currency"] = currencies[1];
+      giving["receive_currency"] = currencies[0];
+      giving["balance"] = ethers.utils.bigNumberify(currency_1_balance);
+      giving["ui_balance"] = Math.round(ethers.utils.formatUnits(currency_1_balance.toString(), 'ether') * 1000) / 1000;
+      giving["offered"] = ethers.utils.bigNumberify(updated_info["curr_1_amt"]);
+      giving["ui_offered"] = Math.round(ethers.utils.formatUnits(updated_info["curr_1_amt"], 'ether') * 1000) / 1000;
     } else {
-      giving["currency"] = currencies[0]
-      giving["receive_currency"] = currencies[1]
-      giving["balance"] = ethers.utils.bigNumberify(currency_0_balance)
-      giving["ui_balance"] = Math.round(ethers.utils.formatUnits(currency_0_balance.toString(), 'ether') * 1000) / 1000
-      giving["offered"] = ethers.utils.bigNumberify(updated_info["curr_0_amt"])
-      giving["ui_offered"] = Math.round(ethers.utils.formatUnits(updated_info["curr_0_amt"], 'ether') * 1000) / 1000
+      giving["currency"] = currencies[0];
+      giving["receive_currency"] = currencies[1];
+      giving["balance"] = ethers.utils.bigNumberify(currency_0_balance);
+      giving["ui_balance"] = Math.round(ethers.utils.formatUnits(currency_0_balance.toString(), 'ether') * 1000) / 1000;
+      giving["offered"] = ethers.utils.bigNumberify(updated_info["curr_0_amt"]);
+      giving["ui_offered"] = Math.round(ethers.utils.formatUnits(updated_info["curr_0_amt"], 'ether') * 1000) / 1000;
     }
 
     // Adjust the text on the button if an action or error just occurred
-    var button_text = action + " " + currencies[0]
-    button_text = button_success ? "SUCCESS" : button_text
-    button_text = button_error ? "FAILED" : button_text
+    var button_text = action + " " + currencies[0];
+    button_text = button_success ? "SUCCESS" : button_text;
+    button_text = button_error ? "FAILED" : button_text;
 
     return (
       <div className="Side_bar">
@@ -277,17 +292,17 @@ class SideBar extends Component {
 
             <div className="Side_bar-info-item">
               <div className="Side_bar-info-title">Price:</div>
-              <div className="Side_bar-info-content">{this.numberWithCommas(updated_info["price"])} <span id="Side_bar-exchange">{currencies[1]} / {currencies[0]}</span></div>
+              <div className="Side_bar-info-content">{numberWithCommas(updated_info["price"])} <span id="Side_bar-exchange">{currencies[1]} / {currencies[0]}</span></div>
             </div>
 
             <div className="Side_bar-info-item">
               <div className="Side_bar-info-title">Balance {giving["currency"]}:</div>
-              <div className="Side_bar-info-content">{this.numberWithCommas(giving["ui_balance"])} <span id="Side_bar-exchange">{giving["currency"]}</span></div>
+              <div className="Side_bar-info-content">{numberWithCommas(giving["ui_balance"])} <span id="Side_bar-exchange">{giving["currency"]}</span></div>
             </div>
 
             <div className="Side_bar-info-item">
               <div className="Side_bar-info-title">Offered {giving["currency"]}:</div>
-              <div className="Side_bar-info-content">{this.numberWithCommas(giving["ui_offered"])} <span id="Side_bar-exchange">{giving["currency"]}</span></div>
+              <div className="Side_bar-info-content">{numberWithCommas(giving["ui_offered"])} <span id="Side_bar-exchange">{giving["currency"]}</span></div>
             </div>
           </div>
 
@@ -317,9 +332,7 @@ class SideBar extends Component {
             <div className="Side_bar-info-title">Will Receive</div>
             <div className="Side_bar-info-content">{giving["ui_will_receive"].toString() + " " + giving["receive_currency"]}</div>
           </div>
-
           <Button className="BuySell-button" loading={button_loading} color={action === "BUY" ? "green" : "red"} disabled={options.readOnly || button_text !== action + " " + currencies[0] || giving["will_receive"].lte(ethers.utils.bigNumberify("1000")) || ethers.utils.bigNumberify(amount).gt(giving["max_take"])} onClick={() => this.executeTrade(giving["will_receive"]) }>{button_text}</Button>
-
         </Sidebar>
       </div>
     );

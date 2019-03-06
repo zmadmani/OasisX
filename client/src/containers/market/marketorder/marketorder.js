@@ -1,12 +1,14 @@
+// Import Major Dependencies
 import React, { Component } from 'react'
 import { ethers } from 'ethers';
 import { Input, Form, Button, Loader } from 'semantic-ui-react'
 
+// Import CSS Files
 import './marketorder.css'
 
 class MarketOrder extends Component {
   constructor(props) {
-    super(props)
+    super(props);
     this.state = {
       loading: [false, false],
       error: [false, false],
@@ -16,259 +18,300 @@ class MarketOrder extends Component {
       expected_price: ['', ''],
       expected_amount: ['0', '0'],
       bignumbers: []
-    }
+    };
 
-    this.handleMarketBuy = this.handleMarketBuy.bind(this)
-    this.handleMarketSell = this.handleMarketSell.bind(this)
-    this.flashSuccess = this.flashSuccess.bind(this)
-    this.flashError = this.flashError.bind(this)
+    this.handleMarketBuy = this.handleMarketBuy.bind(this);
+    this.handleMarketSell = this.handleMarketSell.bind(this);
+    this.flashSuccess = this.flashSuccess.bind(this);
+    this.flashError = this.flashError.bind(this);
   }
 
   componentDidMount() {
-    this.generateBigNumbers()
+    this.generateBigNumbers();
   }
 
+  // Generates and stores a list of BigNumber integers for arithmetic later
   generateBigNumbers() {
-    var bignumbers = {}
-    for(var i = 0; i <= 10; i++) {
-      var key = i
-      bignumbers[key] = ethers.utils.bigNumberify(key)
+    let bignumbers = {};
+    for(let i = 0; i <= 10; i++) {
+      const key = i;
+      bignumbers[key] = ethers.utils.bigNumberify(key);
     }
 
-    this.setState({ bignumbers })
+    this.setState({ bignumbers });
   }
 
+  // Handler for Market Buy
   async handleMarketBuy() {
     // Set loading to true to update UI
-    var { loading, error, success } = this.state
-    loading[1] = true
-    error[1] = false
-    success[1] = false
-    this.setState({ loading , error, success })
+    let { loading, error, success } = this.state;
+    loading[1] = true;
+    error[1] = false;
+    success[1] = false;
+    this.setState({ loading , error, success });
     
-    var { amounts, expected_amount } = this.state
-    var { currencies, options } = this.props
+    // Retrieve important variables
+    const { amounts, expected_amount } = this.state;
+    const { currencies, options } = this.props;
     
-    var curr_gem_0 = options.contracts[currencies[0]].address
-    var curr_gem_1 = options.contracts[currencies[1]].address
+    const curr_gem_0 = options.contracts[currencies[0]].address;
+    const curr_gem_1 = options.contracts[currencies[1]].address;
 
-    var min_expected_amount = ethers.utils.bigNumberify("98").mul(expected_amount[1]).div(ethers.utils.bigNumberify("100"))
+    // Calculate the minimum expected amount of currency you will receive
+    const min_expected_amount = ethers.utils.bigNumberify("98").mul(expected_amount[1]).div(ethers.utils.bigNumberify("100"));
 
-    var data = {
+    // Assemble the data information into an object
+    const data = {
       pay_gem: curr_gem_1,
       pay_amt: amounts[1],
       buy_gem: curr_gem_0,
       min_fill_amount: min_expected_amount.toString()
-    }
+    };
 
-    console.log(data)
+    // Log the data object to console for clarity
+    console.log(data);
 
+    // Try catch to handle successful and failed tx
     try {
-      var tx = await options.contracts.Market.sellAllAmount(data["pay_gem"], data["pay_amt"], data["buy_gem"], data["min_fill_amount"])
-      await tx.wait()
-      this.flashSuccess(1)
+      var tx = await options.contracts.Market.sellAllAmount(data["pay_gem"], data["pay_amt"], data["buy_gem"], data["min_fill_amount"]);
+      // Wait for transaction to finish
+      await tx.wait();
+      this.flashSuccess(1);
     } catch (error) {
-      this.flashError(1)
+      this.flashError(1);
     }
   }
 
+  // Handler for Market Sell
   async handleMarketSell() {
     // Set loading to true to update UI
-    var { loading, error, success } = this.state
-    loading[0] = true
-    error[0] = false
-    success[0] = false
-    this.setState({ loading , error, success })
+    let { loading, error, success } = this.state;
+    loading[0] = true;
+    error[0] = false;
+    success[0] = false;
+    this.setState({ loading , error, success });
 
-    var { amounts, expected_amount } = this.state
-    var { currencies, options } = this.props
+    // Retrieve important variables
+    const { amounts, expected_amount } = this.state;
+    const { currencies, options } = this.props;
 
-    var curr_gem_0 = options.contracts[currencies[0]].address
-    var curr_gem_1 = options.contracts[currencies[1]].address
+    const curr_gem_0 = options.contracts[currencies[0]].address;
+    const curr_gem_1 = options.contracts[currencies[1]].address;
 
-    var min_expected_amount = ethers.utils.bigNumberify("98").mul(expected_amount[0]).div(ethers.utils.bigNumberify("100"))
+    // Calculate the minimum expected amount of currency you will receive
+    const min_expected_amount = ethers.utils.bigNumberify("98").mul(expected_amount[0]).div(ethers.utils.bigNumberify("100"));
 
-    var data = {
+    // Assemble the data information into an object
+    const data = {
       pay_gem: curr_gem_0,
       pay_amt: amounts[0],
       buy_gem: curr_gem_1,
       min_fill_amount: min_expected_amount.toString()
-    }
+    };
 
-    console.log(data)
+    // Log the dta object to console for clarity
+    console.log(data);
 
+    // Try catch to handle successful and failed tx
     try {
-      var tx = await options.contracts.Market.sellAllAmount(data["pay_gem"], data["pay_amt"], data["buy_gem"], data["min_fill_amount"])
-      await tx.wait()
-      this.flashSuccess(0)
+      const tx = await options.contracts.Market.sellAllAmount(data["pay_gem"], data["pay_amt"], data["buy_gem"], data["min_fill_amount"]);
+      // Wait for tx to finish
+      await tx.wait();
+      this.flashSuccess(0);
     } catch (error) {
-      this.flashError(0)
+      this.flashError(0);
     }
   }
 
+  // Handler for when a tx is successful
   flashSuccess(index) {
-    var { loading, success, error } = this.state
-    loading[index] = false
-    success[index] = true
-    error[index] = false
-    this.setState({ loading, success, error })
-    setTimeout(() => this.reset(index), 1500)
+    let { loading, success, error } = this.state;
+    loading[index] = false;
+    success[index] = true;
+    error[index] = false;
+    this.setState({ loading, success, error });
+    setTimeout(() => this.reset(index), 1500);
   }
 
+  // Handler for whne a tx is failed
   flashError(index) {
-    var { loading, success, error } = this.state
-    loading[index] = false
-    success[index] = false
-    error[index] = true
-    this.setState({ loading, success, error })
+    let { loading, success, error } = this.state;
+    loading[index] = false;
+    success[index] = false;
+    error[index] = true;
+    this.setState({ loading, success, error });
     setTimeout(() => {
-      var { loading, success, error } = this.state
-      loading[index] = false
-      success[index] = false
-      error[index] = false
-      this.setState({ error })
-    }, 1500)
+      let { loading, success, error } = this.state;
+      loading[index] = false;
+      success[index] = false;
+      error[index] = false;
+      this.setState({ error });
+    }, 1500);
   }
 
+  // State reset function that completely nullifies the component state
   reset(index) {
-    var { loading, success, error, amounts, ui_amounts } = this.state
-    loading[index] = false
-    success[index] = false
-    error[index] = false
-    amounts[index] = "0"
-    ui_amounts[index] = ""
-    this.setState({ loading, success, error, amounts, ui_amounts })
+    let { loading, success, error, amounts, ui_amounts } = this.state;
+    loading[index] = false;
+    success[index] = false;
+    error[index] = false;
+    amounts[index] = "0";
+    ui_amounts[index] = "";
+    this.setState({ loading, success, error, amounts, ui_amounts });
   }
 
+  // Calculate the amount of currency that we expect to receive from the trade
+  // Index is wether currency 0 or 1 is being bought
   async setExpectedAmount(index) {
-    var { amounts, expected_amount, expected_price } = this.state
-    var { currencies, options } = this.props
+    // Assemble variables
+    const { amounts, expected_amount, expected_price } = this.state;
+    const { currencies, options } = this.props;
 
-    var curr_gem_0 = options.contracts[currencies[0]].address
-    var curr_gem_1 = options.contracts[currencies[1]].address
+    const curr_gem_0 = options.contracts[currencies[0]].address;
+    const curr_gem_1 = options.contracts[currencies[1]].address;
 
-    var will_receive = "0"
-    var giving = amounts[index]
+    let will_receive = "0";
+    let giving = amounts[index];
 
+    // Depending on which currency is being received
     if(index === 0) {
-      will_receive = await options.contracts.Market.getBuyAmount(curr_gem_1, curr_gem_0, giving)
+      will_receive = await options.contracts.Market.getBuyAmount(curr_gem_1, curr_gem_0, giving);
     } else if(index === 1) {
-      will_receive = await options.contracts.Market.getBuyAmount(curr_gem_0, curr_gem_1, giving)
+      will_receive = await options.contracts.Market.getBuyAmount(curr_gem_0, curr_gem_1, giving);
     }
 
+    // If the amount received/given is greater than 0 then calculate expected info using BigNumber
     if(will_receive !== "0" && giving !== "0") {
-      will_receive = ethers.utils.bigNumberify(will_receive)
-      giving = ethers.utils.bigNumberify(giving)
-      var one = ethers.utils.bigNumberify(ethers.utils.parseUnits('1', 'ether'))
+      will_receive = ethers.utils.bigNumberify(will_receive);
+      giving = ethers.utils.bigNumberify(giving);
+      var one = ethers.utils.bigNumberify(ethers.utils.parseUnits('1', 'ether'));
 
-      var price = one.mul(will_receive).div(giving)
+      var price = one.mul(will_receive).div(giving);
       if(index === 1) {
-        price = one.mul(giving).div(will_receive)
+        price = one.mul(giving).div(will_receive);
       }
-      price = Math.round(ethers.utils.formatUnits(price.toString(), 'ether') * 1000) / 1000
+      price = Math.round(ethers.utils.formatUnits(price.toString(), 'ether') * 1000) / 1000;
 
-      expected_amount[index] = will_receive
-      expected_price[index] = price
+      expected_amount[index] = will_receive;
+      expected_price[index] = price;
     } else {
-      expected_amount[index] = "0"
-      expected_price[index] = ""
+      expected_amount[index] = "0";
+      expected_price[index] = "";
     }
-    this.setState({ expected_amount, expected_price })
-
+    this.setState({ expected_amount, expected_price });
   }
 
+  // Handler for a change in the amount of currency to be traded
   handleAmountChange(index, value) {
-    var { amounts, ui_amounts } = this.state
+    const { amounts, ui_amounts } = this.state;
 
-    var new_amounts = amounts.slice(0)
-    var new_ui_amounts = ui_amounts.slice(0)
+    // Gather currency balance
+    let new_amounts = amounts.slice(0);
+    let new_ui_amounts = ui_amounts.slice(0);
 
+    // If there is an error then replace values with empty values
     try {
+      // Test the new amount value to see if it is whitespace and if so replace with empty values
       if(/\S/.test(value)) {
-        var ui_amount = value
-        var amount_bn = ethers.utils.bigNumberify(ethers.utils.parseUnits(ui_amount.toString(), 'ether'))
+        const ui_amount = value;
 
-        new_amounts[index] = amount_bn.toString()
-        new_ui_amounts[index] = ui_amount.toString()
+        // Get BigNumber representation of the amount in wei
+        const amount_bn = ethers.utils.bigNumberify(ethers.utils.parseUnits(ui_amount.toString(), 'ether'));
 
+        // Reassign the new amounts
+        new_amounts[index] = amount_bn.toString();
+        new_ui_amounts[index] = ui_amount.toString();
+
+        // Save the amounts
         this.setState({ 
           amounts: new_amounts,
           ui_amounts: new_ui_amounts
-        })
+        });
       } else {
-        new_amounts[index] = '0'
-        new_ui_amounts[index] = ''
+        new_amounts[index] = '0';
+        new_ui_amounts[index] = '';
       }
     } catch(err) {
-      console.log(err)
-      new_amounts[index] = '0'
-      new_ui_amounts[index] = ''
+      console.log(err);
+      new_amounts[index] = '0';
+      new_ui_amounts[index] = '';
     }
 
     this.setState({
       amounts: new_amounts,
       ui_amounts: new_ui_amounts
     }, () => {
-      this.setExpectedAmount(index)
-    })
+      this.setExpectedAmount(index);
+    });
   }
 
+  // Handler for changes in amount using percentage tool
   handleAmountPercentageChange(index, value) {
-    var { amounts, ui_amounts } = this.state
+    const { amounts, ui_amounts } = this.state;
 
-    var amount_bn = value
-    var ui_amount = ethers.utils.formatUnits("0", 'ether')
+    // Gather the amount variables
+    // Initialize ui_amount to 0 to be replaced by real value in try/catch
+    const amount_bn = value;
+    let ui_amount = ethers.utils.formatUnits("0", 'ether');
     try {
-      ui_amount = ethers.utils.formatUnits(amount_bn.toString(), 'ether')
+      ui_amount = ethers.utils.formatUnits(amount_bn.toString(), 'ether');
     } catch(err) {
-      console.log(err)
+      console.log(err);
     }
 
-    var new_amounts = amounts.slice(0)
-    var new_ui_amounts = ui_amounts.slice(0)
+    // clone amounts into new objects
+    let new_amounts = amounts.slice(0);
+    let new_ui_amounts = ui_amounts.slice(0);
 
-    new_amounts[index] = amount_bn.toString()
-    new_ui_amounts[index] = ui_amount.toString()
+    new_amounts[index] = amount_bn.toString();
+    new_ui_amounts[index] = ui_amount.toString();
 
+    // Store new objects
     this.setState({ 
       amounts: new_amounts,
       ui_amounts: new_ui_amounts
     }, () => {
-      this.setExpectedAmount(index)
-    })
+      this.setExpectedAmount(index);
+    });
   }
 
+  /** ################# RENDER ################# **/
+
   render() {
-    var { amounts, ui_amounts, expected_price, bignumbers, loading, success, error } = this.state
-    var { currencies, balances, options } = this.props
+    const { amounts, ui_amounts, expected_price, bignumbers, loading, success, error } = this.state;
+    const { currencies, balances, options } = this.props;
     
-    var can_buy = false
-    var can_sell = false
+    // Set flags if buying/selling is logically valid
+    let can_buy = false;
+    let can_sell = false;
     
-    var curr_0_balance = ethers.utils.bigNumberify(balances[0])
-    var curr_1_balance = ethers.utils.bigNumberify(balances[1])
+    // Get the balances for each currency
+    const curr_0_balance = ethers.utils.bigNumberify(balances[0]);
+    const curr_1_balance = ethers.utils.bigNumberify(balances[1]);
     
-    var amount_0_bn = ethers.utils.bigNumberify(amounts[0])
-    var amount_1_bn = ethers.utils.bigNumberify(amounts[1])
+    // Get the amounts for each currency input box
+    const amount_0_bn = ethers.utils.bigNumberify(amounts[0]);
+    const amount_1_bn = ethers.utils.bigNumberify(amounts[1]);
 
+    // If the balance is greater than the amount then set the proper flags
     if(curr_0_balance.gte(amount_0_bn) && amount_0_bn.gt(ethers.utils.bigNumberify("1000"))) {
-      can_sell = true
+      can_sell = true;
     }
-    
     if(curr_1_balance.gte(amount_1_bn) && amount_1_bn.gt(ethers.utils.bigNumberify("1000"))) {
-      can_buy = true
+      can_buy = true;
     }
 
-    var side_texts = ["", ""]
-    for(var i = 0; i < 2; i++) {
+    // Generate the side text next to the buttons
+    let side_texts = ["", ""];
+    for(let i = 0; i < 2; i++) {
       if(loading[i]) {
-        side_texts[i] = (<span className="MarketOrder-color"><Loader active inline size="small"/> LOADING...</span>)
+        side_texts[i] = (<span className="MarketOrder-color"><Loader active inline size="small"/> LOADING...</span>);
       }
       if(error[i]) {
-        side_texts[i] = (<span className="red MarketOrder-color">FAILED</span>)
+        side_texts[i] = (<span className="red MarketOrder-color">FAILED</span>);
       }
       if(success[i]) {
-        side_texts[i] = (<span className="green MarketOrder-color">SUCCESS</span>)
+        side_texts[i] = (<span className="green MarketOrder-color">SUCCESS</span>);
       }
     }
 
