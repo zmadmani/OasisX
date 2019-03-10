@@ -187,9 +187,15 @@ class Infobar extends Component {
         <Table basic='very' padded={"very"} striped unstackable id="Infobar-table">
           <Table.Header id="Infobar-table-header">
             <Table.Row>
-              <Table.HeaderCell className='Infobar-table-entry' textAlign='left'>Token</Table.HeaderCell>
-              <Table.HeaderCell className='Infobar-table-entry' textAlign='left'>Balance</Table.HeaderCell>
-              <Table.HeaderCell className='Infobar-table-entry' textAlign='left'>Approved</Table.HeaderCell>
+              <Table.Cell>
+                <Header className='Infobar-table-entry' textAlign='left'>Token</Header>
+              </Table.Cell>
+              <Table.Cell>
+                <Header className='Infobar-table-entry' textAlign='left'>Balance</Header>
+              </Table.Cell>
+              <Table.Cell>
+                <Header className='Infobar-table-entry' textAlign='left'>Approved</Header>
+              </Table.Cell>
             </Table.Row>
           </Table.Header>
 
