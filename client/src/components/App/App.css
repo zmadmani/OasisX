@@ -1,0 +1,90 @@
+/* PAGE */
+
+html {
+   line-height: 1.5;
+}
+
+body {
+  font-size: 1em;
+  font-family: Cairo,Arial,sans-serif;
+  font-weight: 300;
+  letter-spacing: 0;
+}
+
+h1, h2, h3 {
+  font-family: 'Oswald', 'Arial Narrow', sans-serif;
+}
+
+code {
+  display: block;
+  margin: 20px 0 15px 0;
+  padding: 10px;
+  background: #eee;
+}
+
+.App_market_container {
+
+}
+
+.container {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 45px 20px;
+}
+
+.pure-button-primary {
+  background-color: #0c1a2b;
+}
+
+.pure-button-primary:hover {
+  background-color: #233e5e;
+}
+
+.pure-form input[type="text"]:focus {
+  border-color: #0c1a2b;
+}
+
+/* NAVBAR */
+
+.navbar {
+  position: fixed;
+  padding: 5px;
+  background: #0c1a2b;
+  font-family: 'Oswald', 'Arial Narrow', sans-serif;
+}
+
+.navbar a {
+  color: #fff;
+}
+
+.navbar a:active,
+.navbar a:focus,
+.navbar a:hover {
+  background: #233e5e;
+}
+
+.navbar .pure-menu-heading {
+  font-weight: bold;
+  text-transform: none;
+}
+
+.navbar .navbar-right {
+  float: right;
+}
+
+.navbar .uport-logo {
+  height: 16px;
+  margin-right: 10px;
+}
+
+#App-loading-screen {
+  background-color: #202930;
+  height: 100vh;
+  width: 100vw;
+  color: #9aa3ad;
+  font-size: 2rem;
+  line-height: 2rem;
+  font-weight: 600;
+  text-align: center;
+  padding-top: 30%;
+}

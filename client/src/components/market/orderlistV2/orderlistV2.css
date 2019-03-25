@@ -1,0 +1,93 @@
+.OrderListV2 {
+	background-color: #152128;
+	width: 100%;
+	height: 640px;
+	overflow-y: auto;
+}
+
+.OrderListV2-infinite-list {
+	outline: none;
+}
+
+#OrderListV2-table {
+	width: 100%;
+	margin: 0;
+}
+
+#OrderListV2-table-header {
+	width: 100%;
+	background-color: #0b1216;
+	height: 50px;
+	margin: 0 !important;
+	font-size: 1.2rem;
+	font-weight: 600;
+}
+
+.OrderListV2-table-entry {
+	width: 100%;
+	cursor: pointer;
+	font-weight: 600;
+	line-height: 40px;
+}
+
+.OrderListV2-table-entry-grid {
+	margin-top: 0px !important;
+}
+
+.OrderListV2-table-entry-grid-img {
+	height: 40px;
+	padding: 10px 1rem !important;
+}
+
+.OrderListV2-table-entry-grid-col {
+	height: 40px !important;
+	padding: 0px 1rem !important;
+}
+
+#OrderListV2-table-middle {
+	font-weight: 600;
+	background-color: black;
+	border-style: solid none;
+	line-height: 40px;
+	border-width: 2px;
+	border-color: rgba(255,0,0,0.3) white rgba(0,255,0,0.3) white;
+}
+
+.OrderListV2-loading {
+	color: #9aa3ad;
+	font-size: 1.8rem;
+	font-weight: 600;
+	height: 100%;
+	width: 100%;
+	margin: auto 0;
+	text-align: center;
+	padding-top: 50%;
+}
+
+/*.OrderListV2-table-entry {
+	color: #9aa3ad !important;
+}
+
+.OrderListV2-table-row {
+	cursor: pointer;
+	background-color: #152128;
+}
+
+.OrderListV2-table-header {
+	color: #9aa3ad !important;
+	background-color: #0b1216 !important;
+	font-size: 1.2rem;
+}
+
+
+#OrderListV2-tableBody>.OrderListV2-my-order {
+	background-color: #3f4a50 !important;
+}
+
+.OrderListV2-icon {
+	margin-left: 3px;
+}
+
+#OrderListV2-MiddleRow {
+	background-color: black !important;
+}*/

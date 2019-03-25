@@ -1,0 +1,28 @@
+.HumanName {
+	cursor: pointer;
+	-webkit-box-align: center;
+	-ms-flex-align: center;
+	align-items: center;
+	-webkit-box-pack: center;
+	-ms-flex-pack: center;
+	font-family: sans-serif;
+}
+
+.HumanName-circle {
+	float: left;
+	width: 1.5rem;
+	height: 1.5rem;
+	display: table-cell;
+	border-radius: 100%;
+	line-height: 1.5rem;
+	text-align: center;
+	vertical-align: middle;
+  	line-height: 1.5rem;
+	font-weight: 600;
+	font-size: 0.75rem;
+}
+
+.HumanName-name {
+	display: table-cell;
+	padding-left: 0.5rem;
+}

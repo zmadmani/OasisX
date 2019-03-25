@@ -190,20 +190,6 @@ module.exports = {
       }*/
     ]
   },
-
-  // We use PostCSS for autoprefixing only.
-  // postcss: function() {
-  //   return [
-  //     autoprefixer({
-  //       browsers: [
-  //         '>1%',
-  //         'last 4 versions',
-  //         'Firefox ESR',
-  //         'not ie < 9', // React doesn't support IE8 anyway
-  //       ]
-  //     }),
-  //   ];
-  // },
   plugins: [
     // Makes the public URL available as %PUBLIC_URL% in index.html, e.g.:
     // <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico">

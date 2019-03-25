@@ -1,0 +1,52 @@
+.LimitOrder {
+	background-color: #152128;
+	width: 100%;
+	padding: 1.5rem;
+	min-height: 600px;
+}
+
+.LimitOrder-headers {
+	font-size: 2rem;
+	font-weight: 600;
+	line-height: 3rem;
+	padding-bottom: 0.5rem;
+}
+
+.LimitOrder-button {
+	margin-top: 1rem !important;
+	margin-right: 1rem !important;
+}
+
+.LimitOrder-mini-buttons {
+	font-size: 0.5em;
+	width: 100%;
+	padding: 0rem 0rem 0.5rem 0rem;
+}
+
+.LimitOrder-amount-input {
+	padding: 1rem 0rem 0.5rem 0rem;
+}
+
+.LimitOrder-color {
+	font-weight: 600;
+	font-size: 1.15rem;
+}
+
+.LimitOrder-currentPrice {
+	font-size: 1rem;
+	line-height: 1.65rem;
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+.LimitOrder-currentPrice:hover {
+	color: white;
+}
+
+#LimitOrder-amount-header {
+	padding-top: 2rem;
+}
+
+#LimitOrder-price {
+	padding-bottom: 2rem;
+}

@@ -1,0 +1,58 @@
+#Login {
+	background-color: #202930;
+	color: #9aa3ad;
+	min-height: 100vh;
+	height: 100%;
+	width: 100%;
+	padding: 10rem 30.5rem 3rem 8rem;
+}
+
+#Login-logo {
+	background-color: white;
+}
+
+#Login-submit {
+	margin: 0rem;
+}
+
+.Login-input {
+	padding: 1rem 0rem;
+}
+
+#Login-title {
+	font-size: 5rem;
+	line-height: 5rem;
+	font-weight: 600;
+	width: 100%;
+	text-align: center;
+}
+
+#Login-subtitle {
+	font-weight: 500;
+	font-size: 2rem;
+	line-height: 2rem;
+	padding-top: 2rem;
+	width: 100%;
+	text-align: center;
+}
+
+.Login-highlighted {
+	background-color: #42484d;
+}
+
+.Login-option {
+	width: 250px;
+	padding: 1rem;
+	line-height: 1.5rem;
+	cursor: pointer;
+}
+
+@media (max-width: 1024px) {
+
+}
+
+@media (max-width: 768px) {
+  #Login {
+  	padding: 10rem 1.5rem 0 1.5rem;
+  }
+}

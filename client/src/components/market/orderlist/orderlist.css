@@ -1,0 +1,44 @@
+.OrderList {
+	background-color: #152128;
+	width: 100%;
+	height: 500px;
+	overflow-y: auto;
+}
+
+#OrderList-table {
+	width: 100%;
+	margin: 0;
+}
+
+.OrderList-table-entry {
+	color: #9aa3ad !important;
+}
+
+.OrderList-table-row {
+	cursor: pointer;
+	background-color: #152128;
+}
+
+.OrderList-table-header {
+	color: #9aa3ad !important;
+	background-color: #0b1216 !important;
+	font-size: 1.2rem;
+}
+
+.OrderList-loading {
+	color: #9aa3ad;
+	font-size: 2rem;
+	height: 100%;
+	width: 100%;
+	margin: auto 0;
+	text-align: center;
+	padding-top: 50%;
+}
+
+#OrderList-tableBody>.OrderList-my-order {
+	background-color: #3f4a50 !important;
+}
+
+.OrderList-icon {
+	margin-left: 3px;
+}

@@ -1,0 +1,117 @@
+.Market {
+	background-color: #202930;
+	color: #9aa3ad;
+	min-height: 100vh;
+	height: 100%;
+	width: 100%;
+	padding: 3rem 30.5rem 3rem 8rem;
+}
+
+.Market-h1 {
+	font-size: 3rem;
+	line-height: 1;
+	letter-spacing: .1px;
+	font-weight: 600;
+	margin: 0;
+}
+
+#Market-title {
+	padding-bottom: 2rem;
+}
+
+#Market-chart {
+	padding-bottom: 2rem;
+}
+
+#Market-buysell {
+	padding-bottom: 2rem;
+}
+
+#Market-stats {
+	padding-bottom: 2rem;
+}
+
+#Market-activity-pane {
+	padding-bottom: 2rem;
+}
+
+#Market-orderlists {
+	padding-bottom: 2rem;
+}
+
+.Market-headers {
+	font-size: 1.5rem;
+	font-weight: 600;
+	line-height: 2rem;
+	padding: 0.25rem;
+}
+
+.Market-tab-pane {
+	padding: 0 !important;
+	border: 0 !important;
+}
+
+.red {
+	color: red;
+}
+
+.green {
+	color: green;
+}
+
+.ui.tabular.menu {
+	border: 0px !important;
+}
+
+.ui.tabular.menu .item {
+	color: white;
+	background: #202930;
+	border-radius: 0 !important;
+	border: 0;
+}
+
+.ui.tabular.menu .item:hover {
+	color: white;
+	background: #111a21;
+}
+
+.ui.tabular.menu .active.item {
+	background: #0b1215;
+	color: white;
+	border: 0;
+	border-radius: 0 !important;
+}
+
+#Market-leaderboard-pane {
+	padding-bottom: 2rem;
+}
+
+@media (max-width: 1024px) {
+
+}
+
+@media (max-width: 768px) {
+  .Market {
+  	padding: 6.5rem 1.5rem 0 1.5rem;
+  }
+
+  .Market-h1 {
+	font-size: 9vw;
+	line-height: 0.8;
+	letter-spacing: .1px;
+	font-weight: 500;
+	margin: 0;
+  }
+
+  .ui.tabular.menu .active.item {
+	width: 33%;
+  }
+
+  .ui.tabular.menu .item {
+  	width: 33%;
+  }
+
+  .Market-orderlist {
+ 	padding-bottom: 2rem;
+  }
+}

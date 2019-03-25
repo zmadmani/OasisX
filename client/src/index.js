@@ -9,7 +9,7 @@ import 'react-virtualized/styles.css'
 import './index.css';
 
 // Import App src code
-import App from './containers/App/App';
+import App from './components/App/App';
 
 ReactDOM.render(<App />, document.getElementById('root'));
 registerServiceWorker();

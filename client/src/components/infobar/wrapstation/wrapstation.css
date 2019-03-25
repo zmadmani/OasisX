@@ -1,0 +1,75 @@
+.WrapStation {
+	background-color: #111a21eb;
+	width: 100%;
+	margin-top: 2em;
+	height: 350px;
+}
+
+.WrapStation-loading {
+	color: #0b1216;
+	font-size: 2rem;
+	height: 100%;
+	width: 100%;
+	margin: auto 0;
+	text-align: center;
+	padding-top: 50%;
+}
+
+.WrapStation-headers {
+	font-size: 1.15rem;
+	font-weight: 600;
+	line-height: 2rem;
+	padding-top: 2rem;
+}
+
+.WrapStation-mini-buttons {
+	font-size: 0.5em;
+	width: 100%;
+}
+
+#WrapStation-title {
+	font-weight: 600;
+	font-size: 1.6rem;
+	line-height: 1.1em;
+	width: 100%;
+	padding: 1rem;
+	background-color: #0b1216;
+}
+
+#WrapStation-form {
+	padding: 0 1rem;
+	background-color: #111a21eb;
+}
+
+#WrapStation-warning {
+	font-size: 0.75rem;
+	padding-left: 1rem;
+}
+
+@media (max-width: 1024px) {
+
+}
+
+@media (max-width: 768px) {
+	.WrapStation-button {
+		width: 100% !important;
+		font-size: 0.1rem;
+	}
+
+	#WrapStation-title {
+		padding-left: 2rem;
+	}
+
+	#WrapStation-form {
+		padding-left: 2rem;
+	}
+
+	.WrapStation-formgroup {
+		padding-bottom: 1rem;
+	}
+
+	#WrapStation-warning {
+		font-size: 0.65rem;
+		padding-left: 1rem;
+	}
+}
