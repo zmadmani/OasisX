@@ -17,7 +17,7 @@ import MyHistory from './myhistory/myhistory';
 import SideBar from './sidebar/sidebar';
 
 // Import orderbook read functions
-import { subscribeToNewOrders, unSubscribeToNewOrders } from '../utils/orders';
+import { subscribeToNewOrders, subscribeToMyNewOrders, unSubscribeToNewOrders, unSubscribeToMyNewOrders } from '../utils/orders';
 import { getOpenOrders } from '../utils/openorders';
 
 // eslint-disable-next-line
@@ -37,42 +37,60 @@ class Market extends Component {
         "type": ""
       },
       past_orders: [],
+      my_past_orders: [],
       open_buy_orders: [],
       open_sell_orders: [],
       balances: ['0', '0'],
-      timers: [null, null]
+      timers: [null, null],
+      num_order_calls: 0,
+      logged_latest_block: 0
     };
 
     this.updateBalances = this.updateBalances.bind(this);
     this.updateOpenOrders = this.updateOpenOrders.bind(this);
+    this.pastOrderWorker = new myWorker();
   }
 
   async componentDidMount() {
     // Retrieve starting data and subscribe to future live feeds
     const { currencies, options } = this.props;
-    
     // Store account in state for convenience
     let account = await options.signer.getAddress();
+
+    this.setState({ logged_latest_block: await options.provider.getBlockNumber() }, () => {
+      // Get past orders for 5 years (5 * 5760) in a webworker thread
+      this.pastOrderWorker.addEventListener('message', (event) => {
+        let type = event.data.type;
+        let payload = event.data.payload;
+
+        if (type === "pastOrders") {
+          this.processNewBatchPastOrders(payload);
+        } else if(type === "myPastOrders") {
+          this.processNewBatchMyPastOrders(payload);
+        }
+      });
+      
+      this.pastOrderWorker.postMessage({
+        type: "pastOrders",
+        currencies: currencies,
+        toBlock: this.state.logged_latest_block,
+        numBlocks: 5760*5
+      });
+
+      this.pastOrderWorker.postMessage({
+        type: "myPastOrders",
+        account: account,
+        currencies: currencies,
+        toBlock: this.state.logged_latest_block,
+        numBlocks: 5760*100
+      });
+    });
+    
     this.setState({ account });
     
     // Start polls for open orders and balances
     this.updateOpenOrders();
     this.updateBalances();
-
-    // Get past orders for 5 years (5 * 5760)
-    // let past_orders = await getPastOrders(currencies, options.contracts, options.provider, -1, 5760*1);
-    const worker = new myWorker();
-    worker.postMessage({
-      currencies: currencies,
-      toBlock: -1,
-      numBlocks: 5760*5
-    });
-    worker.addEventListener('message', (event) => this.getPastOrders(event));
-
-    // this.setState({ past_orders });
-
-    // Subscribe to updates for new orders and pass in callback
-    // subscribeToNewOrders(currencies, options.contracts, this.addOrders);
   }
 
   // Cleaning up timers and unsubscribing from live feeds
@@ -85,14 +103,35 @@ class Market extends Component {
 
     const { options, currencies } = this.props;
     unSubscribeToNewOrders(currencies, options.contracts);
+    unSubscribeToMyNewOrders(this.state.account, currencies, options.contracts);
   }
 
-  getPastOrders(event) {
+  async processNewBatchMyPastOrders(my_past_orders) {
     const { currencies, options } = this.props;
+    this.setState({ my_past_orders });
+    subscribeToMyNewOrders(this.state.account, currencies, options.contracts, this.addMyOrders);
+  }
 
-    let past_orders = event.data;
+  async processNewBatchPastOrders(past_orders) {
+    const { currencies, options } = this.props;
+    if (this.state.num_order_calls === 0) {
+      subscribeToNewOrders(currencies, options.contracts, this.addOrders);
+    } else {
+
+      past_orders = this.state.past_orders.concat(past_orders);
+    }
     this.setState({ past_orders });
-    subscribeToNewOrders(currencies, options.contracts, this.addOrders);
+
+    this.setState({ num_order_calls: this.state.num_order_calls + 1 }, () => {
+      if (this.state.num_order_calls < 1) {
+        let toBlock = this.state.logged_latest_block - 5760*2.5*this.state.num_order_calls
+        this.pastOrderWorker.postMessage({
+          currencies: currencies,
+          toBlock: toBlock,
+          numBlocks: 5760
+        });
+      }
+    });
   }
 
   /** ################# POLLING FUNCTIONS ################# **/
@@ -138,6 +177,10 @@ class Market extends Component {
     this.setState({ past_orders: orders.concat(this.state.past_orders) });
   }
 
+  addMyOrders = (orders) => {
+    this.setState({ my_past_orders: orders.concat(this.state.my_past_orders) });
+  }
+
   // Function to set the order information for the sidebar and sets it to visible
   setSidebar = (info) => {
     this.setState({ sidebar_info: info, visible: true });
@@ -159,7 +202,7 @@ class Market extends Component {
   /** ################# RENDER ################# **/
 
   render() {
-    const { visible, sidebar_info, account, past_orders, balances, open_buy_orders, open_sell_orders } = this.state;
+    const { visible, sidebar_info, account, past_orders, my_past_orders, balances, open_buy_orders, open_sell_orders } = this.state;
     const { currencies, options } = this.props;
 
     // Build the title
@@ -182,7 +225,7 @@ class Market extends Component {
     if(!options.readOnly) {
       const logged_in_panes = [
         { menuItem: 'Open Orders', render: () => <Tab.Pane className="Market-tab-pane"><MyOrders currencies={currencies} options={options} orders={all_open_orders} account={account} /></Tab.Pane> },
-        { menuItem: 'My History', render: () => <Tab.Pane className="Market-tab-pane"><MyHistory currencies={currencies} options={options} orders={past_orders} account={account} /></Tab.Pane> },
+        { menuItem: 'My History', render: () => <Tab.Pane className="Market-tab-pane"><MyHistory currencies={currencies} options={options} orders={my_past_orders} account={account} /></Tab.Pane> },
       ];
       activity_panes = logged_in_panes.concat(activity_panes);
     }

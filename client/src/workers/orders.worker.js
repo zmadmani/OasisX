@@ -9,8 +9,19 @@ const MatchingMarketAbi = require("../abi/maker-otc/matching-market");
 const SupportMethodsAbi = require("../abi/otc-support-methods/otc-support-methods");
 
 self.addEventListener("message", async (event) => { // eslint-disable-line no-restricted-globals
-	let res = await getPastOrders(event.data.currencies, event.data.toBlock, event.data.numBlocks);
-	self.postMessage(res); // eslint-disable-line no-restricted-globals
+	if(event.data.type === "myPastOrders") {
+		let res = await getMyPastOrders(event.data.account, event.data.currencies, event.data.toBlock, event.data.numBlocks);
+		self.postMessage({ // eslint-disable-line no-restricted-globals
+			type: "myPastOrders",
+			payload: res
+		});
+	} else {
+		let res = await getPastOrders(event.data.currencies, event.data.toBlock, event.data.numBlocks);
+		self.postMessage({ // eslint-disable-line no-restricted-globals
+			type: "pastOrders",
+			payload: res
+		});
+	}
 });
 
 // Helper function to calculate the price of an order using BigNumber for all operations
@@ -98,8 +109,79 @@ function getContracts(contract_initializer) {
 	};
 }
 
-export async function test(currencies) {
-	return currencies;
+export async function getMyPastOrders(account, currencies, toBlock=-1, numBlocks=5760) {
+	let provider = new ethers.getDefaultProvider();
+
+	// Since this is readOnly, the contracts are initialized with the provider
+	let contracts = getContracts(provider);
+	
+	const { Market } = contracts;
+
+	// Calculate toBlock and fromBlock
+	const latestBlock = await provider.getBlockNumber();
+	toBlock = toBlock === -1 ? latestBlock : toBlock;
+	const fromBlock = toBlock - numBlocks;
+
+	// Get the addresses for the currencies in question
+	const curr_0_addr = contracts[currencies[0]].address;
+	const curr_1_addr = contracts[currencies[1]].address;
+
+	// Build a log filter for each permutation of currencies (0-1 and 1-0)
+	const hashKey01 = buildHashKey(curr_0_addr, curr_1_addr);
+	const filter01_maker = Market.filters.LogTake(null, hashKey01, account, null, null, null);
+	filter01_maker.fromBlock = fromBlock;
+	filter01_maker.toBlock = toBlock;
+
+	const filter01_taker = Market.filters.LogTake(null, hashKey01, null, null, null, account);
+	filter01_taker.fromBlock = fromBlock;
+	filter01_taker.toBlock = toBlock;
+
+	const hashKey10 = buildHashKey(curr_1_addr, curr_0_addr);
+	const filter10_maker = Market.filters.LogTake(null, hashKey10, account, null, null, null);
+	filter10_maker.fromBlock = fromBlock;
+	filter10_maker.toBlock = toBlock;
+
+	const filter10_taker = Market.filters.LogTake(null, hashKey10, null, null, null, account);
+	filter10_taker.fromBlock = fromBlock;
+	filter10_taker.toBlock = toBlock;
+
+	// Wait for all of the events to load
+	let [events01_maker, events01_taker, events10_maker, events10_taker] = await Promise.all([provider.getLogs(filter01_maker), provider.getLogs(filter01_taker), provider.getLogs(filter10_maker), provider.getLogs(filter10_taker)]);
+
+	// Decode the data from all of the logs
+	events01_maker = events01_maker.map((item) => {
+	  const parsed = Market.interface.events.LogTake.decode(item.data, item.topics);
+	  return parsed;
+	});
+	events01_taker = events01_taker.map((item) => {
+	  const parsed = Market.interface.events.LogTake.decode(item.data, item.topics);
+	  return parsed;
+	});
+	events10_maker = events10_maker.map((item) => {
+	  const parsed = Market.interface.events.LogTake.decode(item.data, item.topics);
+	  return parsed;
+	});
+	events10_taker = events10_taker.map((item) => {
+	  const parsed = Market.interface.events.LogTake.decode(item.data, item.topics);
+	  return parsed;
+	});
+
+	// Concatenate all of the events and Sort by timestamp
+	const events = events01_maker.concat(events01_taker).concat(events10_maker).concat(events10_taker);
+	events.sort(function(first, second) {
+	  return parseInt(first.timestamp.toString()) - parseInt(second.timestamp.toString());
+	});
+
+	// Parse the events into a more usable Order format and return
+	let orders = eventsToOrders(events, currencies, curr_0_addr, curr_1_addr);
+
+	orders = orders.map((item) => {
+		item["curr_0"] = item["curr_0"].toString();
+		item["curr_1"] = item["curr_1"].toString();
+		return item;
+	})
+
+	return orders;
 }
 
 // Function that gets the trades of a pair of currencies
@@ -130,10 +212,12 @@ export async function getPastOrders(currencies, toBlock=-1, numBlocks=5760) {
 	const hashKey01 = buildHashKey(curr_0_addr, curr_1_addr);
 	const filter01 = Market.filters.LogTake(null, hashKey01, null, null, null, null);
 	filter01.fromBlock = fromBlock;
+	filter01.toBlock = toBlock;
 
 	const hashKey10 = buildHashKey(curr_1_addr, curr_0_addr);
 	const filter10 = Market.filters.LogTake(null, hashKey10, null, null, null, null);
 	filter10.fromBlock = fromBlock;
+	filter10.toBlock = toBlock;
 
 	// Wait for all of the events to load
 	let [events01, events10] = await Promise.all([provider.getLogs(filter01), provider.getLogs(filter10)]);

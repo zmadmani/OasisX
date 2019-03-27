@@ -79,6 +79,23 @@ function buildHashKey(first_addr, second_addr) {
 /** ################# Functions for retrieving executed orders ################# **/
 
 // Function to unsubscribe from subscription from subscribeToNewOrders(). Should run for cleanup.
+export async function unSubscribeToMyNewOrders(account, currencies, contracts) {
+    var { Market } = contracts;
+    
+    var curr_0_addr = contracts[currencies[0]].address;
+    var curr_1_addr = contracts[currencies[1]].address;
+    
+    const hashKey01 = buildHashKey(curr_0_addr, curr_1_addr);
+    const hashKey10 = buildHashKey(curr_1_addr, curr_0_addr);
+    
+    var filter01_maker = Market.filters.LogTake(null, hashKey01, account, null, null, null);
+    var filter01_taker = Market.filters.LogTake(null, hashKey01, null, null, null, account);
+    var filter10_maker = Market.filters.LogTake(null, hashKey10, account, null, null, null);
+    var filter10_taker = Market.filters.LogTake(null, hashKey10, null, null, null, account);
+    Market.removeAllListeners(filter01_maker).removeAllListeners(filter01_taker).removeAllListeners(filter10_maker).removeAllListeners(filter10_taker);
+}
+
+// Function to unsubscribe from subscription from subscribeToNewOrders(). Should run for cleanup.
 export async function unSubscribeToNewOrders(currencies, contracts) {
     var { Market } = contracts;
     
@@ -91,6 +108,81 @@ export async function unSubscribeToNewOrders(currencies, contracts) {
     var filter1 = Market.filters.LogTake(null, hashKey1, null, null, null, null);
     var filter2 = Market.filters.LogTake(null, hashKey2, null, null, null, null);
     Market.removeAllListeners(filter1).removeAllListeners(filter2);
+}
+
+export async function subscribeToMyNewOrders(account, currencies, contracts, addOrders) {
+	var { Market } = contracts;
+
+	var curr_0_addr = contracts[currencies[0]].address;
+	var curr_1_addr = contracts[currencies[1]].address;
+
+	const hashKey01 = buildHashKey(curr_0_addr, curr_1_addr);
+	const hashKey10 = buildHashKey(curr_1_addr, curr_0_addr);
+
+	var filter01_maker = Market.filters.LogTake(null, hashKey01, account, null, null, null);
+	var filter01_taker = Market.filters.LogTake(null, hashKey01, null, null, null, account);
+	var filter10_maker = Market.filters.LogTake(null, hashKey10, account, null, null, null);
+	var filter10_taker = Market.filters.LogTake(null, hashKey10, null, null, null, account);
+	Market.on(filter01_maker, (id, pair, maker, pay_gem, buy_gem, taker, take_amt, give_amt, timestamp, event) => {
+	    var order = {
+			"id": id,
+			"pair": pair,
+			"maker": maker,
+			"pay_gem": pay_gem,
+			"buy_gem": buy_gem,
+			"taker": taker,
+			"take_amt": take_amt,
+			"give_amt": give_amt,
+			"timestamp": timestamp
+	    };
+	    var orders = eventsToOrders([order], currencies, curr_0_addr, curr_1_addr);
+	    addOrders(orders);
+	});
+	Market.on(filter01_taker, (id, pair, maker, pay_gem, buy_gem, taker, take_amt, give_amt, timestamp, event) => {
+	    var order = {
+			"id": id,
+			"pair": pair,
+			"maker": maker,
+			"pay_gem": pay_gem,
+			"buy_gem": buy_gem,
+			"taker": taker,
+			"take_amt": take_amt,
+			"give_amt": give_amt,
+			"timestamp": timestamp
+	    };
+	    var orders = eventsToOrders([order], currencies, curr_0_addr, curr_1_addr);
+	    addOrders(orders);
+	});
+	Market.on(filter10_maker, (id, pair, maker, pay_gem, buy_gem, taker, take_amt, give_amt, timestamp, event) => {
+	    var order = {
+			"id": id,
+			"pair": pair,
+			"maker": maker,
+			"pay_gem": pay_gem,
+			"buy_gem": buy_gem,
+			"taker": taker,
+			"take_amt": take_amt,
+			"give_amt": give_amt,
+			"timestamp": timestamp
+	    };
+	    var orders = eventsToOrders([order], currencies, curr_0_addr, curr_1_addr);
+	    addOrders(orders);
+	});
+	Market.on(filter10_taker, (id, pair, maker, pay_gem, buy_gem, taker, take_amt, give_amt, timestamp, event) => {
+	    var order = {
+			"id": id,
+			"pair": pair,
+			"maker": maker,
+			"pay_gem": pay_gem,
+			"buy_gem": buy_gem,
+			"taker": taker,
+			"take_amt": take_amt,
+			"give_amt": give_amt,
+			"timestamp": timestamp
+	    };
+	    var orders = eventsToOrders([order], currencies, curr_0_addr, curr_1_addr);
+	    addOrders(orders);
+	});
 }
 
 // Function to subscribe to receive callbacks for new orders that were executed on the given currency pair
@@ -136,56 +228,4 @@ export async function subscribeToNewOrders(currencies, contracts, addOrders) {
 	    var orders = eventsToOrders([order], currencies, curr_0_addr, curr_1_addr);
 	    addOrders(orders);
 	});
-}
-
-// Function that gets the trades of a pair of currencies
-// Input:
-// 		currencies: [CURR_0, CURR_1]
-//		contracts: contracts object from main App
-//		provider
-//		toBlock (default: latest): latest block to search
-//		numBlocks (default: 5760 [1 day]): number of blocks to search going back from toBlock
-export async function getPastOrders(currencies, contracts, provider, toBlock=-1, numBlocks=5760) {
-	const { Market } = contracts;
-
-	// Calculate toBlock and fromBlock
-	const latestBlock = await provider.getBlockNumber();
-	toBlock = toBlock === -1 ? latestBlock : toBlock;
-	const fromBlock = toBlock - numBlocks;
-
-	// Get the addresses for the currencies in question
-	const curr_0_addr = contracts[currencies[0]].address;
-	const curr_1_addr = contracts[currencies[1]].address;
-
-	// Build a log filter for each permutation of currencies (0-1 and 1-0)
-	const hashKey01 = buildHashKey(curr_0_addr, curr_1_addr);
-	const filter01 = Market.filters.LogTake(null, hashKey01, null, null, null, null);
-	filter01.fromBlock = fromBlock;
-
-	const hashKey10 = buildHashKey(curr_1_addr, curr_0_addr);
-	const filter10 = Market.filters.LogTake(null, hashKey10, null, null, null, null);
-	filter10.fromBlock = fromBlock;
-
-	// Wait for all of the events to load
-	let [events01, events10] = await Promise.all([provider.getLogs(filter01), provider.getLogs(filter10)]);
-
-	// Decode the data from all of the logs
-	events01 = events01.map((item) => {
-	  const parsed = Market.interface.events.LogTake.decode(item.data, item.topics);
-	  return parsed;
-	});
-	events10 = events10.map((item) => {
-	  const parsed = Market.interface.events.LogTake.decode(item.data, item.topics);
-	  return parsed;
-	});
-
-	// Concatenate all of the events and Sort by timestamp
-	const events = events01.concat(events10);
-	events.sort(function(first, second) {
-	  return parseInt(first.timestamp.toString()) - parseInt(second.timestamp.toString());
-	});
-
-	// Parse the events into a more usable Order format and return
-	const orders = eventsToOrders(events, currencies, curr_0_addr, curr_1_addr);
-	return orders;
 }
