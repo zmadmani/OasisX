@@ -11,6 +11,7 @@ import LimitOrder from './limitorder/limitorder';
 import MarketOrder from './marketorder/marketorder';
 import MyOrders from './myorders/myorders';
 import Stats from './stats/stats';
+import AccountStats from './accountstats/accountstats';
 import MarketHistory from './markethistory/markethistory';
 import Leaderboard from './leaderboard/leaderboard';
 import MyHistory from './myhistory/myhistory';
@@ -272,6 +273,11 @@ class Market extends Component {
             <Leaderboard currencies={currencies} account={account} options={options} orders={past_orders} />
           </div>
         </Responsive>
+
+        <div id="Market-account-stats">
+          <div className="Market-headers">100-D Account Stats</div>
+          <AccountStats currencies={currencies} orders={my_past_orders} account={account} />
+        </div>
       </div>
     );
   }

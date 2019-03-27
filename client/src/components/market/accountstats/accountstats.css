@@ -1,0 +1,31 @@
+.AccountStats {
+	background-color: #152128;
+	width: 100%;
+	height: auto;
+	overflow-y: auto;
+}
+
+#AccountStats-grid {
+	margin: 0px 0px;
+	padding: 15px;
+	font-size: 1.3rem;
+}
+
+.AccountStats-grid-col {
+	margin: 15px 0px !important;
+}
+
+.AccountStats-fieldName {
+	font-weight: 700;
+	font-size: 1.4rem;
+}
+
+.sub_value {
+	font-size: 0.85rem;
+}
+
+@media (max-width: 768px) {
+	.AccountStats-grid-col {
+		margin: 0.5rem !important;
+	}
+}
