@@ -32,13 +32,10 @@ class OrderListV2 extends Component {
   // Retreives the maximum value in the orderbook
   getMax(orders) {
     const top10 = orders.concat().sort((a,b) => b.curr_1_amt - a.curr_1_amt).slice(0,10);
-    for(let i = 0; i < top10.length-1; i++) {
-      if(top10[i].curr_1_amt <= top10[i+1].curr_1_amt*2) {
-        return top10[i].curr_1_amt;
-      }
-    }
-    if(top10.length > 0) {
-      return top10[top10.length-1];
+    if(top10.length === 10) {
+      return top10[top10.length-1].curr_1_amt;
+    } else if(top10.length > 0) {
+      return top10[Math.floor(top10.length/2)].curr_1_amt;
     } else {
       return null;
     }
