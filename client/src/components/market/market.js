@@ -44,7 +44,8 @@ class Market extends Component {
       balances: ['0', '0'],
       timers: [null, null],
       num_order_calls: 0,
-      logged_latest_block: 0
+      logged_latest_block: 0,
+      done_loading: false
     };
 
     this.updateBalances = this.updateBalances.bind(this);
@@ -75,7 +76,7 @@ class Market extends Component {
         type: "pastOrders",
         currencies: currencies,
         toBlock: this.state.logged_latest_block,
-        numBlocks: 5760*5
+        numBlocks: 5760
       });
 
       this.pastOrderWorker.postMessage({
@@ -124,13 +125,15 @@ class Market extends Component {
     this.setState({ past_orders });
 
     this.setState({ num_order_calls: this.state.num_order_calls + 1 }, () => {
-      if (this.state.num_order_calls < 1) {
-        let toBlock = this.state.logged_latest_block - 5760*2.5*this.state.num_order_calls
+      if (this.state.num_order_calls < 5) {
+        let toBlock = this.state.logged_latest_block - 5760*this.state.num_order_calls
         this.pastOrderWorker.postMessage({
           currencies: currencies,
           toBlock: toBlock,
           numBlocks: 5760
         });
+      } else {
+        this.setState({ done_loading: true })
       }
     });
   }
@@ -203,7 +206,7 @@ class Market extends Component {
   /** ################# RENDER ################# **/
 
   render() {
-    const { visible, sidebar_info, account, past_orders, my_past_orders, balances, open_buy_orders, open_sell_orders } = this.state;
+    const { visible, sidebar_info, account, past_orders, my_past_orders, balances, open_buy_orders, open_sell_orders, done_loading } = this.state;
     const { currencies, options } = this.props;
 
     // Build the title
@@ -218,8 +221,8 @@ class Market extends Component {
 
     // Create the panels for the Activity Pane Tabs
     let activity_panes = [
-      { menuItem: 'Market History', render: () => <Tab.Pane className="Market-tab-pane"><MarketHistory currencies={currencies} options={options} orders={past_orders} /></Tab.Pane> },
-      { menuItem: '5-D Leaderboard', render: () => <Tab.Pane className="Market-tab-pane"><Leaderboard currencies={currencies} account={account} options={options} orders={past_orders} /></Tab.Pane> },
+      { menuItem: 'Market History', render: () => <Tab.Pane className="Market-tab-pane"><MarketHistory currencies={currencies} options={options} orders={done_loading ? past_orders : []} /></Tab.Pane> },
+      { menuItem: '5-D Leaderboard', render: () => <Tab.Pane className="Market-tab-pane"><Leaderboard currencies={currencies} account={account} options={options} orders={done_loading ? past_orders : []} /></Tab.Pane> },
     ];
 
     // If in readOnly mode then add more panes for account specific information
@@ -242,7 +245,7 @@ class Market extends Component {
         <SideBar currencies={currencies} toggleSidebar={this.toggleSidebar} sidebar_info={sidebar_info} visible={visible} account={account} options={options} />
         <div id="Market-title"><span className="Market-h1">{title}</span></div>
         <div className="Market-headers">5-Day Market Stats</div>
-        <div id="Market-stats"><Stats currencies={currencies} options={options} orders={past_orders} /></div>
+        <div id="Market-stats"><Stats currencies={currencies} options={options} orders={done_loading ? past_orders : [] } /></div>
 
         <Grid divided id="Market-orderlists">
           <Grid.Column className="Market-orderlist" computer={8} tablet={8} mobile={16}>
@@ -270,7 +273,7 @@ class Market extends Component {
         <Responsive maxWidth={Responsive.onlyTablet.minWidth}>
           <div id="Market-leaderboard-pane">
             <div className="Market-headers">Leaderboard</div>
-            <Leaderboard currencies={currencies} account={account} options={options} orders={past_orders} />
+            <Leaderboard currencies={currencies} account={account} options={options} orders={done_loading ? past_orders : []} />
           </div>
         </Responsive>
 
