@@ -76,7 +76,7 @@ class Market extends Component {
         type: "pastOrders",
         currencies: currencies,
         toBlock: this.state.logged_latest_block,
-        numBlocks: 2880 // 5760 / 2
+        numBlocks: 1440 // 5760 / 2
       });
 
       this.pastOrderWorker.postMessage({
@@ -125,12 +125,12 @@ class Market extends Component {
     this.setState({ past_orders });
 
     this.setState({ num_order_calls: this.state.num_order_calls + 1 }, () => {
-      if (this.state.num_order_calls < 10) {
-        let toBlock = this.state.logged_latest_block - 2880*this.state.num_order_calls
+      if (this.state.num_order_calls < 20) {
+        let toBlock = this.state.logged_latest_block - 1440*this.state.num_order_calls
         this.pastOrderWorker.postMessage({
           currencies: currencies,
           toBlock: toBlock,
-          numBlocks: 2880
+          numBlocks: 1440
         });
       } else {
         this.setState({ done_loading: true })
