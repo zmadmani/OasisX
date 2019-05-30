@@ -118,7 +118,7 @@ class SideBar extends Component {
     console.log(inputs);
 
     try {
-      const tx = await this.props.options.contracts.Market.buy(id, will_receive.toString());
+      const tx = await this.props.options.contracts.Market.buy(id, will_receive.toString(), { gasLimit: 500000 });
       this.setState({ button_loading: true });
       await tx.wait();
       this.flashSuccess();

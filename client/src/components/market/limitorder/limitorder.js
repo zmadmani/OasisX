@@ -80,7 +80,7 @@ class LimitOrder extends Component {
     console.log(data);
 
     try {
-      const tx = await options.contracts.Market.offer(data.pay_amt, data.pay_gem, data.buy_amt, data.buy_gem, 1);
+      const tx = await options.contracts.Market.offer(data.pay_amt, data.pay_gem, data.buy_amt, data.buy_gem, 1, { gasLimit: 500000 });
       await tx.wait();
       this.flashSuccess();
     } catch (error) {

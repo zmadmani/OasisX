@@ -110,6 +110,7 @@ function getContracts(contract_initializer) {
 }
 
 export async function getMyPastOrders(account, currencies, toBlock=-1, numBlocks=5760) {
+	ethers.errors.setLogLevel("error");
 	let provider = new ethers.getDefaultProvider();
 
 	// Since this is readOnly, the contracts are initialized with the provider
@@ -192,6 +193,7 @@ export async function getMyPastOrders(account, currencies, toBlock=-1, numBlocks
 //		toBlock (default: latest): latest block to search
 //		numBlocks (default: 5760 [1 day]): number of blocks to search going back from toBlock
 export async function getPastOrders(currencies, toBlock=-1, numBlocks=5760) {
+	ethers.errors.setLogLevel("error");
 	let provider = new ethers.getDefaultProvider();
 
 	// Since this is readOnly, the contracts are initialized with the provider

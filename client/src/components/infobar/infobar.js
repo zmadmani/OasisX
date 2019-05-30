@@ -43,6 +43,7 @@ class Infobar extends Component {
 
     // If the page is not readOnly then get balances for the active account.
     if(!options.readOnly) {
+      console.log("Updating Sidebar Balances...");
       const account = await options.signer.getAddress();
       const market_address = options.contracts.Market.address;
 

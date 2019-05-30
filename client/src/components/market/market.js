@@ -146,6 +146,7 @@ class Market extends Component {
     const { account } = this.state;
 
     if(account !== "") {
+      console.log("Updating Balances...")
       const currency_0_balance = await options.contracts[currencies[0]].balanceOf(account);
       const currency_1_balance = await options.contracts[currencies[1]].balanceOf(account);
       const balances = [currency_0_balance, currency_1_balance];
@@ -162,6 +163,7 @@ class Market extends Component {
 
   // Function to periodically update the list of open orders from the blockchain
   async updateOpenOrders() {
+    console.log("Updating Open Orders...");
     const [open_buy_orders, open_sell_orders] = await Promise.all([
                                                       getOpenOrders("BUY", this.props.currencies, this.props.options.contracts), 
                                                       getOpenOrders("SELL", this.props.currencies, this.props.options.contracts)]);
