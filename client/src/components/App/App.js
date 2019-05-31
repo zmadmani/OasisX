@@ -143,7 +143,6 @@ class App extends React.Component {
     var ethereum = null;
     // If web3 is present in the window return the connection provider otherwise null
 
-    alert(window.ethereum)
     if(window.web3) {
       ethereum = window.ethereum ? window.ethereum : window.web3.currentProvider;
     } else {

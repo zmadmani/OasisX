@@ -116,7 +116,7 @@ class WrapStation extends Component {
       this.setState({ loading })
       console.log("SENDING " + amount + " TO WRAPPER...")
       try {
-        var tx = await deposit({value: amount})
+        var tx = await deposit({value: amount, gasPrice: ethers.utils.parseUnits('10.0', 'gwei') })
         await tx.wait()
         this.flashSuccess(0)
       } catch (error) {
@@ -137,7 +137,7 @@ class WrapStation extends Component {
       this.setState({ loading })
       console.log("SENDING " + amount + " TO UNWRAPPER...")
       try {
-        var tx = await withdraw(amount.toString())
+        var tx = await withdraw(amount.toString(), { gasPrice: ethers.utils.parseUnits('10.0', 'gwei') })
         await tx.wait()
         this.flashSuccess(1)
       } catch (error) {

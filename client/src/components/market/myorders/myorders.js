@@ -1,5 +1,6 @@
 // Import Major Dependencies
 import React, { Component } from 'react';
+import { ethers } from 'ethers';
 import { Table, Button } from 'semantic-ui-react';
 
 // Import CSS Files
@@ -32,7 +33,7 @@ class MyOrders extends Component {
     const { Market } = this.props.options.contracts;
     console.log("CANCEL ORDER " + id);
     try {
-      const tx = await Market.cancel(id, { gasLimit: 500000 });
+      const tx = await Market.cancel(id, { gasLimit: 500000, gasPrice: ethers.utils.parseUnits('10.0', 'gwei') });
       await tx.wait();
     } catch (error) {
       console.log(error);
