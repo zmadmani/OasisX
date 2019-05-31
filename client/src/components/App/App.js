@@ -41,10 +41,8 @@ class App extends React.Component {
 
   componentWillMount() {
     // Retrieve and store options
-    setTimeout(() => {
-      const options = this.getOptions();
-      this.setState({ options });
-    }, 1000);
+    const options = this.getOptions();
+    this.setState({ options });
   }
 
   // Constructs and Returns a Dictionary with the environment options
@@ -62,7 +60,6 @@ class App extends React.Component {
 
     // If an Ethereum connection exists then retrieve the provider and signer
     // Else connect to default provider from ethers.js (myetherwallet/infura) and generate a random account to be the signer
-    alert(ethereum)
     if(ethereum) {
       provider = new ethers.providers.Web3Provider(ethereum);
       signer = provider.getSigner();
@@ -145,8 +142,11 @@ class App extends React.Component {
   getEthereum() {
     var ethereum = null;
     // If web3 is present in the window return the connection provider otherwise null
+
+    alert(window.web3)
     if(window.web3) {
       ethereum = window.ethereum ? window.ethereum : window.web3.currentProvider;
+    } else {
     }
     return ethereum;
   }
