@@ -60,6 +60,7 @@ class App extends React.Component {
 
     // If an Ethereum connection exists then retrieve the provider and signer
     // Else connect to default provider from ethers.js (myetherwallet/infura) and generate a random account to be the signer
+    alert(ethereum)
     if(ethereum) {
       provider = new ethers.providers.Web3Provider(ethereum);
       signer = provider.getSigner();
