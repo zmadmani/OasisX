@@ -41,8 +41,10 @@ class App extends React.Component {
 
   componentWillMount() {
     // Retrieve and store options
-    const options = this.getOptions();
-    this.setState({ options });
+    setTimeout(() => {
+      const options = this.getOptions();
+      this.setState({ options });
+    }, 1000);
   }
 
   // Constructs and Returns a Dictionary with the environment options
