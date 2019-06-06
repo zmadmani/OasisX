@@ -43,6 +43,25 @@ function processOpenOrders(rawOrders, type) {
 	return orders
 }
 
+// Returns the trimmed length of the list if the 0 padding was removed from the end
+function getTrueLength(list) {
+	return list.filter((item) => {
+		return item.toNumber() !== 0
+	}).length
+}
+
+// Trims all the 0 padding away from the end of the rawOrders payload
+function trimNulls(rawOrders) {
+	const trimLength = getTrueLength(rawOrders["ids"])
+	return {
+		"ids": rawOrders["ids"].slice(0, trimLength),
+		"payAmts": rawOrders["payAmts"].slice(0, trimLength),
+		"buyAmts": rawOrders["buyAmts"].slice(0, trimLength),
+		"owners": rawOrders["owners"].slice(0, trimLength),
+		"timestamps": rawOrders["timestamps"].slice(0, trimLength),
+	}
+}
+
 // Function that gets a list of open orders for a pair of currencies and a type (BUY or SELL)
 export async function getOpenOrders(type, currencies, contracts) {
 	const { Market } = contracts;
@@ -62,10 +81,22 @@ export async function getOpenOrders(type, currencies, contracts) {
 			buy_token = token_addr_1;
 		}
 
-		const rawOrders = await contracts.SupportMethods.getOffers(Market.address, pay_token, buy_token);
+		let allRawOrders = await contracts.SupportMethods.getOffers(Market.address, pay_token, buy_token);
+		let newOrders = allRawOrders["ids"].length
+		while (newOrders !== 0) {
+			let offerId = await contracts.Market.getWorseOffer(allRawOrders["ids"][allRawOrders["ids"].length - 1])
+			let rawOrders = await contracts.SupportMethods["getOffers(address,uint256)"](Market.address, offerId)
+			rawOrders = trimNulls(rawOrders)
+			newOrders = rawOrders["ids"].length
+			allRawOrders["ids"] = allRawOrders["ids"].concat(rawOrders["ids"]);
+			allRawOrders["payAmts"] = allRawOrders["payAmts"].concat(rawOrders["payAmts"]);
+			allRawOrders["buyAmts"] = allRawOrders["buyAmts"].concat(rawOrders["buyAmts"]);
+			allRawOrders["owners"] = allRawOrders["owners"].concat(rawOrders["owners"]);
+			allRawOrders["timestamps"] = allRawOrders["timestamps"].concat(rawOrders["timestamps"]);
+		}
 		let orders = [];
-		if(rawOrders) {
-			orders = processOpenOrders(rawOrders, type);
+		if(allRawOrders) {
+			orders = processOpenOrders(allRawOrders, type);
 		}
 		return orders;
 	}

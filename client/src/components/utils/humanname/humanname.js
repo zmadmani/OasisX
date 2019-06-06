@@ -1,6 +1,8 @@
 // Import Major Dependencies
 import React, { Component } from 'react';
 import { ethers } from 'ethers';
+import { Popup } from 'semantic-ui-react';
+import { numberWithCommas } from '../general';
 
 // Import CSS Files
 import './humanname.css';
@@ -12,9 +14,39 @@ const colors = ["#001f3f", "#0074D9", "#7FDBFF", "#39CCCC", "#2ECC40", "#01FF70"
 const fontColors = ["#FFFFFF", "#FFFFFF", "#111111", "#111111", "#111111", "#111111", "#111111", "#111111", "#111111", "#111111", "#FFFFFF", "#111111", "#111111"];
 
 class HumanName extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      loading: true,
+      balances: ["...", "..."]
+    };
+
+    this.getBalances();
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if(this.props.address !== prevProps.address) {
+      this.setState({ balances: ["...", "..."], loading: true });
+      this.getBalances();
+    }
+  }
+
+  async getBalances() {
+    // Convert raw orders into the proper format and store max profit someone has made over the data range
+    const { address, options, currencies } = this.props;
+    if (currencies) {
+      let balances = this.state.balances
+      balances[0] = await options.contracts[currencies[0]].balanceOf(address)
+      balances[1] = await options.contracts[currencies[1]].balanceOf(address)
+      balances[0] = numberWithCommas(Math.round(ethers.utils.formatUnits(balances[0].toString(), 'ether') * 1000) / 1000)
+      balances[1] = numberWithCommas(Math.round(ethers.utils.formatUnits(balances[1].toString(), 'ether') * 1000) / 1000)
+      this.setState({ loading: false, balances })
+    }
+  }
+
   // Only update the component if the address has changed since no other change will effect output.
   shouldComponentUpdate(nextProps, nextState) {
-    if(this.props.address !== nextProps.address) {
+    if(this.props.address !== nextProps.address || this.state.loading !== nextState.loading) {
       return true;
     } else {
       return false;
@@ -60,7 +92,8 @@ class HumanName extends Component {
   /** ################# RENDER ################# **/
 
   render() {
-    const { address, icon_only, inactive_link } = this.props;
+    const { address, icon_only, inactive_link, currencies } = this.props;
+    const { balances } = this.state;
 
     // If the address is null then render an empty circle
     if(!address) {
@@ -84,6 +117,16 @@ class HumanName extends Component {
     let final = (<span className="HumanName" title={address} onClick={onClick}>{icon} {name}</span>)
     if( icon_only ) {
       final = (<span className="HumanName" title={address} onClick={onClick}>{icon}</span>)
+    }
+
+    if(currencies) {
+      final = (<Popup trigger={final}>
+                <Popup.Header>Balances</Popup.Header>
+                <Popup.Content>
+                  <p>{balances[0]} {currencies[0]}</p>                
+                  <p>{balances[1]} {currencies[1]}</p>                
+                </Popup.Content>
+              </Popup>)
     }
     return final
 

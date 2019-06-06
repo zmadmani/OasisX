@@ -11,6 +11,7 @@ class LimitOrder extends Component {
     super(props);
     this.state = {
       loading: false,
+      sidetext: "LOADING...",
       init: false,
       error: false,
       success: false,
@@ -46,7 +47,15 @@ class LimitOrder extends Component {
   // This is the most important function here.
   async handleSubmit(type) {
     // Set loading to true to update UI
-    this.setState({loading: true, error: false, success: false});
+    let sidetext;
+    if(type === "BUY") {
+      sidetext = "BUYING..."
+    } else if(type === "SELL") {
+      sidetext = "SELLING..."
+    } else {
+      sidetext = "LOADING..."
+    }
+    this.setState({loading: true, sidetext, error: false, success: false});
 
     const { currencies, options } = this.props;
 
@@ -199,7 +208,7 @@ class LimitOrder extends Component {
   }
 
   render() {
-    const { price, amount_0, amount_1, ui_amount_0, ui_amount_1, bignumbers, loading, success, error } = this.state;
+    const { price, amount_0, amount_1, ui_amount_0, ui_amount_1, bignumbers, loading, success, error, sidetext } = this.state;
     const { currencies, last_price, balances, options } = this.props;
     
     // Set flags that set whether a buy/sell is logically possible
@@ -223,7 +232,7 @@ class LimitOrder extends Component {
     // Set the sidetext (text next to the button) depending on the situation context
     let side_text = "";
     if(loading) {
-      side_text = (<span className="LimitOrder-color"><Loader active inline size="small"/> LOADING...</span>);
+      side_text = (<span className="LimitOrder-color"><Loader active inline size="small"/> {sidetext} </span>);
     }
     if(error) {
       side_text = (<span className="red LimitOrder-color">FAILED</span>);

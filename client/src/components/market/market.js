@@ -24,6 +24,8 @@ import { getOpenOrders } from '../utils/openorders';
 // eslint-disable-next-line
 import myWorker from '../../workers/orders.worker';
 
+const config = require("./../../config");
+
 class Market extends Component {
   constructor(props) {
     super(props);
@@ -44,8 +46,10 @@ class Market extends Component {
       balances: ['0', '0'],
       timers: [null, null],
       num_order_calls: 0,
+      num_my_order_calls: 0,
       logged_latest_block: 0,
-      done_loading: false
+      done_loading: false,
+      done_loading_my_orders: false
     };
 
     this.updateBalances = this.updateBalances.bind(this);
@@ -84,7 +88,7 @@ class Market extends Component {
         account: account,
         currencies: currencies,
         toBlock: this.state.logged_latest_block,
-        numBlocks: 5760*100
+        numBlocks: Math.ceil((this.state.logged_latest_block - parseInt(config["market"]["main"]["blockNumber"])) / 10)
       });
     });
     
@@ -110,16 +114,39 @@ class Market extends Component {
 
   async processNewBatchMyPastOrders(my_past_orders) {
     const { currencies, options } = this.props;
+
+    let account = await options.signer.getAddress();
+
+    if (this.state.num_my_order_calls === 0) {
+      subscribeToMyNewOrders(this.state.account, currencies, options.contracts, this.addMyOrders);
+    } else {
+      my_past_orders = this.state.my_past_orders.concat(my_past_orders);
+    }
     this.setState({ my_past_orders });
-    subscribeToMyNewOrders(this.state.account, currencies, options.contracts, this.addMyOrders);
+
+    this.setState({ num_my_order_calls: this.state.num_my_order_calls + 1 }, () => {
+      if (this.state.num_my_order_calls < 10) {
+        let numBlocks  = Math.ceil((this.state.logged_latest_block - parseInt(config["market"]["main"]["blockNumber"])) / 10)
+        let toBlock = this.state.logged_latest_block - numBlocks * this.state.num_my_order_calls;
+        this.pastOrderWorker.postMessage({
+          type: "myPastOrders",
+          account: account,
+          currencies: currencies,
+          toBlock: toBlock,
+          numBlocks: numBlocks
+        });      
+      } else {
+        this.setState({ done_loading_my_orders: true })
+      }
+    })
   }
 
   async processNewBatchPastOrders(past_orders) {
     const { currencies, options } = this.props;
     if (this.state.num_order_calls === 0) {
+      this.setDocTitle(past_orders[0]);
       subscribeToNewOrders(currencies, options.contracts, this.addOrders);
     } else {
-
       past_orders = this.state.past_orders.concat(past_orders);
     }
     this.setState({ past_orders });
@@ -145,41 +172,51 @@ class Market extends Component {
     const { options, currencies } = this.props;
     const { account } = this.state;
 
-    if(account !== "") {
-      console.log("Updating Balances...")
-      const currency_0_balance = await options.contracts[currencies[0]].balanceOf(account);
-      const currency_1_balance = await options.contracts[currencies[1]].balanceOf(account);
-      const balances = [currency_0_balance, currency_1_balance];
-      this.setState({ balances });
+    try {
+      if(account !== "") {
+        console.log("Updating Balances...")
+        const currency_0_balance = await options.contracts[currencies[0]].balanceOf(account);
+        const currency_1_balance = await options.contracts[currencies[1]].balanceOf(account);
+        const balances = [currency_0_balance, currency_1_balance];
+        this.setState({ balances });
+      }
+    } catch(err) {
+      console.log("Error Updating Balance!: " + err);
+    } finally {
+      // Set timer to recall same function after 3 seconds and store the timer in state
+      // for cleanup
+      const timer = setTimeout(this.updateBalances, 3000);
+      let timers = this.state.timers;
+      timers[0] = timer;
+      this.setState({ timers });
     }
-
-    // Set timer to recall same function after 3 seconds and store the timer in state
-    // for cleanup
-    const timer = setTimeout(this.updateBalances, 3000);
-    let timers = this.state.timers;
-    timers[0] = timer;
-    this.setState({ timers });
   }
 
   // Function to periodically update the list of open orders from the blockchain
   async updateOpenOrders() {
-    console.log("Updating Open Orders...");
-    const [open_buy_orders, open_sell_orders] = await Promise.all([
-                                                      getOpenOrders("BUY", this.props.currencies, this.props.options.contracts), 
-                                                      getOpenOrders("SELL", this.props.currencies, this.props.options.contracts)]);
-
-    // Set timer to recall same function after 5 seconds and store the timer in state
-    // for cleanup
-    const timer = setTimeout(this.updateOpenOrders, 5000);
-    let timers =  this.state.timers;
-    timers[1] = timer;
-    this.setState({ timers, open_buy_orders, open_sell_orders });
+    try {
+      console.log("Updating Open Orders...");
+      const [open_buy_orders, open_sell_orders] = await Promise.all([
+                                                        getOpenOrders("BUY", this.props.currencies, this.props.options.contracts), 
+                                                        getOpenOrders("SELL", this.props.currencies, this.props.options.contracts)]);
+      this.setState({ open_buy_orders, open_sell_orders });
+    } finally {
+      // Set timer to recall same function after 5 seconds and store the timer in state
+      // for cleanup
+      const timer = setTimeout(this.updateOpenOrders, 7500);
+      let timers =  this.state.timers;
+      timers[1] = timer;
+      this.setState({ timers });
+    }
   }
 
   /** ################# HELPER FUNCTIONS ################# **/
 
   // Helper function used as a callback function for the subscription function
   addOrders = (orders) => {
+    if(orders.length > 0) {
+      this.setDocTitle(orders[0]);
+    }
     this.setState({ past_orders: orders.concat(this.state.past_orders) });
   }
 
@@ -205,10 +242,20 @@ class Market extends Component {
     return title;
   }
 
+  setDocTitle(last_order) {
+    let symbol = "▲";
+    if(last_order["type"] === "SELL") {
+      symbol = "▼";
+    }
+    const price = Math.round(last_order["price"] * 1000) / 1000;
+    document.title = price + " " + symbol + " " + this.props.currencies[1] + "/" + this.props.currencies[0];
+
+  }
+
   /** ################# RENDER ################# **/
 
   render() {
-    const { visible, sidebar_info, account, past_orders, my_past_orders, balances, open_buy_orders, open_sell_orders, done_loading } = this.state;
+    const { visible, sidebar_info, account, past_orders, my_past_orders, balances, open_buy_orders, open_sell_orders, done_loading, done_loading_my_orders } = this.state;
     const { currencies, options } = this.props;
 
     // Build the title
@@ -280,8 +327,8 @@ class Market extends Component {
         </Responsive>
 
         <div id="Market-account-stats">
-          <div className="Market-headers">100-D Account Stats</div>
-          <AccountStats currencies={currencies} orders={my_past_orders} account={account} />
+          <div className="Market-headers">All Time Account Stats</div>
+          <AccountStats currencies={currencies} orders={done_loading_my_orders ? my_past_orders : []} account={account} />
         </div>
       </div>
     );

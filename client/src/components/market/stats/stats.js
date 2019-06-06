@@ -88,12 +88,6 @@ class Stats extends Component {
       new_stats["sell_volume"] = Math.round(new_stats["sell_volume"] * 100) / 100;
     }
 
-    let symbol = "▲";
-    if(new_stats["last_type"] === "SELL") {
-      symbol = "▼";
-    }
-
-    document.title = new_stats["last_price"] + " " + symbol + " " + this.props.currencies[1] + "/" + this.props.currencies[0];
     return new_stats;
   }
 

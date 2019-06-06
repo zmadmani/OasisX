@@ -41,29 +41,33 @@ class Infobar extends Component {
   async updateInfo() {
     const { options } = this.props;
 
-    // If the page is not readOnly then get balances for the active account.
-    if(!options.readOnly) {
-      console.log("Updating Sidebar Balances...");
-      const account = await options.signer.getAddress();
-      const market_address = options.contracts.Market.address;
+    try {
+      // If the page is not readOnly then get balances for the active account.
+      if(!options.readOnly) {
+        console.log("Updating Sidebar Balances...");
+        const account = await options.signer.getAddress();
+        const market_address = options.contracts.Market.address;
 
-      // Retrieve the balances and approvals
-      const [weth_balance, dai_balance, mkr_balance] = await this.getBalances(account);
-      const [weth_approval, dai_approval, mkr_approval] = await this.getApprovals(account, market_address);
-      const eth_balance = await options.provider.getBalance(account);
+        // Retrieve the balances and approvals
+        const [weth_balance, dai_balance, mkr_balance] = await this.getBalances(account);
+        const [weth_approval, dai_approval, mkr_approval] = await this.getApprovals(account, market_address);
+        const eth_balance = await options.provider.getBalance(account);
 
-      // Create and store currencies object
-      var currencies = {
-        "WETH": { balance: weth_balance.toString(), approved: weth_approval.toString() },
-        "DAI": { balance: dai_balance.toString(), approved: dai_approval.toString() },
-        "MKR": { balance: mkr_balance.toString(), approved: mkr_approval.toString() },
-        "ETH": { balance: eth_balance.toString(), approved: MAX_VAL  }
-      };
-      this.setState({ currencies, account });
+        // Create and store currencies object
+        var currencies = {
+          "WETH": { balance: weth_balance.toString(), approved: weth_approval.toString() },
+          "DAI": { balance: dai_balance.toString(), approved: dai_approval.toString() },
+          "MKR": { balance: mkr_balance.toString(), approved: mkr_approval.toString() },
+          "ETH": { balance: eth_balance.toString(), approved: MAX_VAL  }
+        };
+        this.setState({ currencies, account });
+      }
+    } catch (err) {
+      console.log("Error Getting Sidebar Balalnces!: " + err);
+    } finally {
+      // Call the same function after timeout of 3 seconds
+      setTimeout(this.updateInfo, 3000);
     }
-
-    // Call the same function after timeout of 3 seconds
-    setTimeout(this.updateInfo, 3000);
   }
 
   /** ################# BLOCKCHAIN WRITE FUNCTIONS ################# **/

@@ -250,7 +250,7 @@ class SideBar extends Component {
       "offered": 0,
       "max_take": this.getMaxTake(),
       "will_receive": this.calcWillReceive(),
-      "maker": owner ? <HumanName address={owner} /> : "Loading...",
+      "maker": owner ? <HumanName address={owner} options={options} currencies={currencies} /> : "Loading...",
     };
     giving["ui_will_receive"] = Math.round(ethers.utils.formatUnits(giving["will_receive"].toString(), 'ether') * 1000) / 1000;
 

@@ -118,11 +118,10 @@ class Leaderboard extends Component {
     return data;
   }
 
-
   // Function that returns a row to be rendered in the virtualized table
   rowRenderer({index, key, style}) {
     const { max_profit } = this.state;
-    const { currencies, account } = this.props;
+    const { currencies, account, options } = this.props;
     const item = this.state.data[index];
 
     const ratio = Math.abs(item["profit"])/max_profit * 100;
@@ -159,7 +158,7 @@ class Leaderboard extends Component {
       <div className="Leaderboard-table-entry" key={key} style={style}>
         <Grid padded={true}>
           <Grid.Column computer={4} tablet={6} mobile={10}>
-            <HumanName address={item["user"]} />
+            <HumanName address={item["user"]} currencies={currencies} options={options} />
           </Grid.Column>
           <Grid.Column computer={3} tablet={2} only={'computer tablet'}>
             <span>{numberWithCommas(item["amount_0_bought"]) + " "}<span className="Leaderboard-subtext">{currencies[0]}</span></span>
