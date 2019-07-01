@@ -243,13 +243,16 @@ class Market extends Component {
   }
 
   setDocTitle(last_order) {
-    let symbol = "▲";
-    if(last_order["type"] === "SELL") {
-      symbol = "▼";
+    try {
+      let symbol = "▲";
+      if(last_order["type"] === "SELL") {
+        symbol = "▼";
+      }
+      const price = Math.round(last_order["price"] * 1000) / 1000;
+      document.title = price + " " + symbol + " " + this.props.currencies[1] + "/" + this.props.currencies[0];
+    } catch {
+      console.log("There was an error setting the document title")
     }
-    const price = Math.round(last_order["price"] * 1000) / 1000;
-    document.title = price + " " + symbol + " " + this.props.currencies[1] + "/" + this.props.currencies[0];
-
   }
 
   /** ################# RENDER ################# **/

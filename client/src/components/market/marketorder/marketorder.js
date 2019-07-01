@@ -17,6 +17,7 @@ class MarketOrder extends Component {
       ui_amounts: ['', ''],
       expected_price: ['', ''],
       expected_amount: ['0', '0'],
+      slippage: "2",
       bignumbers: []
     };
 
@@ -51,14 +52,15 @@ class MarketOrder extends Component {
     this.setState({ loading , error, success });
     
     // Retrieve important variables
-    const { amounts, expected_amount } = this.state;
+    const { amounts, expected_amount, slippage } = this.state;
     const { currencies, options } = this.props;
     
     const curr_gem_0 = options.contracts[currencies[0]].address;
     const curr_gem_1 = options.contracts[currencies[1]].address;
 
     // Calculate the minimum expected amount of currency you will receive
-    const min_expected_amount = ethers.utils.bigNumberify("98").mul(expected_amount[1]).div(ethers.utils.bigNumberify("100"));
+    const numerator = ethers.utils.bigNumberify("100").sub(ethers.utils.bigNumberify(slippage))
+    const min_expected_amount = numerator.mul(expected_amount[1]).div(ethers.utils.bigNumberify("100"));
 
     // Assemble the data information into an object
     const data = {
@@ -92,14 +94,15 @@ class MarketOrder extends Component {
     this.setState({ loading , error, success });
 
     // Retrieve important variables
-    const { amounts, expected_amount } = this.state;
+    const { amounts, expected_amount, slippage } = this.state;
     const { currencies, options } = this.props;
 
     const curr_gem_0 = options.contracts[currencies[0]].address;
     const curr_gem_1 = options.contracts[currencies[1]].address;
 
     // Calculate the minimum expected amount of currency you will receive
-    const min_expected_amount = ethers.utils.bigNumberify("98").mul(expected_amount[0]).div(ethers.utils.bigNumberify("100"));
+    const numerator = ethers.utils.bigNumberify("100").sub(ethers.utils.bigNumberify(slippage))
+    const min_expected_amount = numerator.mul(expected_amount[0]).div(ethers.utils.bigNumberify("100"));
 
     // Assemble the data information into an object
     const data = {
@@ -275,10 +278,33 @@ class MarketOrder extends Component {
     });
   }
 
+  handleSlippageChange(value) {
+    if (!/\S/.test(value) || (/^\d+$/.test(value) && value.length <= 2 && value >= 0 && value <= 99)) {
+      this.setState({slippage: value})
+    }
+  }
+
+  calcMinExpectedAmount(type, expected_amount) {
+    const { slippage, expected_price } = this.state
+    if (slippage === "") {
+      return ""
+    } else {
+      if (type === "buy") {
+        if (expected_price[1] === "") return ""
+        const slip_ratio = 100.0/(100 - parseFloat(slippage))
+        return Math.round(slip_ratio * expected_price[1] * 1000) / 1000
+      } else {
+        if (expected_price[0] === "") return ""
+        const slip_ratio = (100 - parseFloat(slippage))/100.0
+        return Math.round(slip_ratio * expected_price[0] * 1000) / 1000
+      }
+    }
+  }
+
   /** ################# RENDER ################# **/
 
   render() {
-    const { amounts, ui_amounts, expected_price, bignumbers, loading, success, error } = this.state;
+    const { amounts, ui_amounts, expected_price, bignumbers, slippage, loading, success, error } = this.state;
     const { currencies, balances, options } = this.props;
     
     // Set flags if buying/selling is logically valid
@@ -294,10 +320,10 @@ class MarketOrder extends Component {
     const amount_1_bn = ethers.utils.bigNumberify(amounts[1]);
 
     // If the balance is greater than the amount then set the proper flags
-    if(curr_0_balance.gte(amount_0_bn) && amount_0_bn.gt(ethers.utils.bigNumberify("1000"))) {
+    if(curr_0_balance.gte(amount_0_bn) && amount_0_bn.gt(ethers.utils.bigNumberify("1000")) && slippage !== "") {
       can_sell = true;
     }
-    if(curr_1_balance.gte(amount_1_bn) && amount_1_bn.gt(ethers.utils.bigNumberify("1000"))) {
+    if(curr_1_balance.gte(amount_1_bn) && amount_1_bn.gt(ethers.utils.bigNumberify("1000")) && slippage !== "") {
       can_buy = true;
     }
 
@@ -317,10 +343,18 @@ class MarketOrder extends Component {
 
     return (
       <div className="MarketOrder">
+          <div className="MarketOrder-small-note">Slippage 
+            <Input
+              value={slippage}
+              onChange={(e) => { this.handleSlippageChange(e.target.value) }}
+              className="MarketOrder-slippage-input"
+              size="mini"
+            />%
+          </div>
         <div className="MarketOrder-pane">
           <div className="MarketOrder-main-header">Market <span className="green">BUY</span></div>
-          <div className="MarketOrder-small-note">Note: Orders will cancel if slippage >2%</div>
           <div className="MarketOrder-sub-header">Est. Price: {expected_price[1]} <span className="MarketOrder-tiny-note">{currencies[1]}/{currencies[0]}</span></div>
+          <div className="MarketOrder-sub-header">Max. Price: {this.calcMinExpectedAmount("buy", expected_price[1])} <span className="MarketOrder-tiny-note">{currencies[1]}/{currencies[0]}</span></div>
           <Form size='tiny'>
             <div className="MarketOrder-headers"><span className="green">Buy</span> Allowance</div>
             <Form.Group widths='equal'>
@@ -350,8 +384,8 @@ class MarketOrder extends Component {
         <hr />
         <div className="MarketOrder-pane">
           <div className="MarketOrder-main-header">Market <span className="red">SELL</span></div>
-          <div className="MarketOrder-small-note">Note: Orders will cancel if slippage >2%</div>
           <div className="MarketOrder-sub-header">Est. Price: {expected_price[0]} <span className="MarketOrder-tiny-note">{currencies[1]}/{currencies[0]}</span></div>
+          <div className="MarketOrder-sub-header">Min. Price: {this.calcMinExpectedAmount("sell", expected_price[0])} <span className="MarketOrder-tiny-note">{currencies[1]}/{currencies[0]}</span></div>
           <Form size='tiny'>
             <div className="MarketOrder-headers"><span className="red">Sell</span> Allowance</div>
             <Form.Group widths='equal'>

@@ -43,9 +43,16 @@
 	font-weight: 600;
 }
 
+.MarketOrder-slippage-input {
+	width: 50px;
+	padding: 0px 5px;
+}
+
 .MarketOrder-small-note {
 	font-size: 0.95rem;
 	padding-bottom: 1.7rem;
+	padding-top: 0.75rem;
+	float: right;
 }
 
 .MarketOrder-tiny-note {
