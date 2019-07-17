@@ -105,7 +105,7 @@ class SideBar extends Component {
   // Most important function in the entire file since it actually interfaces
   // and edits the blockchain.
   async executeTrade(will_receive) {
-    const { sidebar_info } = this.props;
+    const { sidebar_info, options } = this.props;
 
     const id = sidebar_info["id"];
 
@@ -118,7 +118,7 @@ class SideBar extends Component {
     console.log(inputs);
 
     try {
-      const tx = await this.props.options.contracts.Market.buy(id, will_receive.toString(), { gasLimit: 500000, gasPrice: ethers.utils.parseUnits('10.0', 'gwei') });
+      const tx = await this.props.options.contracts.Market.buy(id, will_receive.toString(), { gasLimit: 500000, gasPrice: options.gasPrice });
       this.setState({ button_loading: true });
       await tx.wait();
       this.flashSuccess();

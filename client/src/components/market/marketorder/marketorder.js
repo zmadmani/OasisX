@@ -75,7 +75,7 @@ class MarketOrder extends Component {
 
     // Try catch to handle successful and failed tx
     try {
-      var tx = await options.contracts.Market.sellAllAmount(data["pay_gem"], data["pay_amt"], data["buy_gem"], data["min_fill_amount"], { gasLimit: 500000, gasPrice: ethers.utils.parseUnits('10.0', 'gwei') });
+      var tx = await options.contracts.Market.sellAllAmount(data["pay_gem"], data["pay_amt"], data["buy_gem"], data["min_fill_amount"], { gasLimit: 500000, gasPrice: options.gasPrice });
       // Wait for transaction to finish
       await tx.wait();
       this.flashSuccess(1);
@@ -117,7 +117,7 @@ class MarketOrder extends Component {
 
     // Try catch to handle successful and failed tx
     try {
-      const tx = await options.contracts.Market.sellAllAmount(data["pay_gem"], data["pay_amt"], data["buy_gem"], data["min_fill_amount"], { gasLimit: 500000, gasPrice: ethers.utils.parseUnits('10.0', 'gwei') });
+      const tx = await options.contracts.Market.sellAllAmount(data["pay_gem"], data["pay_amt"], data["buy_gem"], data["min_fill_amount"], { gasLimit: 500000, gasPrice: options.gasPrice });
       // Wait for tx to finish
       await tx.wait();
       this.flashSuccess(0);

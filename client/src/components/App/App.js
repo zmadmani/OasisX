@@ -31,7 +31,9 @@ class App extends React.Component {
         contracts: [],
         readOnly: true,
         handleLogin: this.handleLogin,
-        handleReLogin: this.handleReLogin
+        handleReLogin: this.handleReLogin,
+        gasPrice: 10,
+        defaultGasPrice: 10
       }
     };
 
@@ -128,13 +130,17 @@ class App extends React.Component {
 
   // Helper function to build options dictionary
   buildOptions(provider, signer, contracts, readOnly) {
+    const defaultGasPrice = ethers.utils.parseUnits('10','gwei');
+    let gasPrice = localStorage.getItem("gasPrice") ? ethers.utils.bigNumberify(localStorage.getItem("gasPrice").toString()) : defaultGasPrice;
     return {
       provider: provider,
       signer: signer,
       contracts: contracts,
       readOnly: readOnly,
       handleLogin: this.handleLogin,
-      handleReLogin: this.handleReLogin
+      handleReLogin: this.handleReLogin,
+      gasPrice: gasPrice,
+      defaultGasPrice: defaultGasPrice
     }
   }
 
@@ -159,6 +165,24 @@ class App extends React.Component {
       Market: new ethers.Contract(config["market"]["main"]["address"], MatchingMarketAbi.interface, contract_initializer),
       SupportMethods: new ethers.Contract(config["otcSupportMethods"]["main"]["address"], SupportMethodsAbi.interface, contract_initializer)
     };
+  }
+
+  // Helper method to set the default gas price used in all transactions
+  setGasPrice = (gasPrice) => {
+    try {
+      const price = ethers.utils.parseUnits(gasPrice, 'gwei');
+      this.setState((prevState) => ({
+        options: {
+          ...prevState.options,
+          gasPrice: price
+        }
+      }));
+      localStorage.setItem("gasPrice", price);
+    } catch {
+      console.log("Could not set gas price to '" + gasPrice + "'");
+      return false;
+    }
+    return true;
   }
 
   /** ################# RENDER ################# **/
@@ -190,7 +214,7 @@ class App extends React.Component {
                 </Switch>
             </div>
             <Responsive minWidth={Responsive.onlyTablet.minWidth}>
-              <Infobar padded={true} options={options} />
+              <Infobar padded={true} options={options} setGasPrice={this.setGasPrice} />
             </Responsive>
           </div>
         </HashRouter>

@@ -106,6 +106,7 @@ class WrapStation extends Component {
 
   onWrap = async () => {
     // Grab the wrap function from the contract instance and the account and amount we want to execute it with
+    const { options } = this.props;
     const deposit = this.props.options.contracts.WETH.deposit
     var amount = this.state.amount_wrap
 
@@ -116,7 +117,7 @@ class WrapStation extends Component {
       this.setState({ loading })
       console.log("SENDING " + amount + " TO WRAPPER...")
       try {
-        var tx = await deposit({value: amount, gasPrice: ethers.utils.parseUnits('10.0', 'gwei') })
+        var tx = await deposit({value: amount, gasPrice: options.gasPrice })
         await tx.wait()
         this.flashSuccess(0)
       } catch (error) {
@@ -128,6 +129,7 @@ class WrapStation extends Component {
   }
 
   onUnwrap = async () => {
+    const { options } = this.props;
     const withdraw = this.props.options.contracts.WETH.withdraw
     var amount = this.state.amount_unwrap
 
@@ -137,7 +139,7 @@ class WrapStation extends Component {
       this.setState({ loading })
       console.log("SENDING " + amount + " TO UNWRAPPER...")
       try {
-        var tx = await withdraw(amount.toString(), { gasPrice: ethers.utils.parseUnits('10.0', 'gwei') })
+        var tx = await withdraw(amount.toString(), { gasPrice: options.gasPrice })
         await tx.wait()
         this.flashSuccess(1)
       } catch (error) {

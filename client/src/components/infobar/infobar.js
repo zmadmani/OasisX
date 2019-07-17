@@ -9,6 +9,7 @@ import './infobar.css'
 
 // Import src code
 import WrapStation from './wrapstation/wrapstation'
+import Settings from './settings/settings'
 import HumanName from '../utils/humanname/humanname'
 
 // Set up constants
@@ -168,7 +169,7 @@ class Infobar extends Component {
 
   render() {
     const { currencies, account } = this.state
-    const { padded, closeSidebar, options } = this.props
+    const { padded, closeSidebar, options, setGasPrice } = this.props
     const currenciesInformation = this.buildRenderList();
 
     // Display a X icon if the user is on mobile (indicated b padded).
@@ -228,6 +229,7 @@ class Infobar extends Component {
 
         {/* Insert the wrapping station widget into the sidebar. */}
         <WrapStation options={options} weth_balance={currencies["WETH"]["balance"]} eth_balance={currencies["ETH"]["balance"]} />
+        <Settings options={options} setGasPrice={setGasPrice} />
       </div>
     )
   }
