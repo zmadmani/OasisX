@@ -9,6 +9,7 @@ import './market.css';
 import OrderListV2 from './orderlistV2/orderlistV2';
 import LimitOrder from './limitorder/limitorder';
 import MarketOrder from './marketorder/marketorder';
+import StopOrder from './stoporder/stoporder';
 import MyOrders from './myorders/myorders';
 import Stats from './stats/stats';
 import AccountStats from './accountstats/accountstats';
@@ -16,10 +17,11 @@ import MarketHistory from './markethistory/markethistory';
 import Leaderboard from './leaderboard/leaderboard';
 import MyHistory from './myhistory/myhistory';
 import SideBar from './sidebar/sidebar';
+import MyStopOrders from './mystoporders/mystoporders';
 
 // Import orderbook read functions
 import { subscribeToNewOrders, subscribeToMyNewOrders, unSubscribeToNewOrders, unSubscribeToMyNewOrders } from '../utils/orders';
-import { getOpenOrders } from '../utils/openorders';
+import { getOpenStopOrders, getOpenOrders } from '../utils/openorders';
 
 // eslint-disable-next-line
 import myWorker from '../../workers/orders.worker';
@@ -43,6 +45,7 @@ class Market extends Component {
       my_past_orders: [],
       open_buy_orders: [],
       open_sell_orders: [],
+      my_open_stop_orders: [],
       balances: ['0', '0'],
       timers: [null, null],
       num_order_calls: 0,
@@ -54,6 +57,7 @@ class Market extends Component {
 
     this.updateBalances = this.updateBalances.bind(this);
     this.updateOpenOrders = this.updateOpenOrders.bind(this);
+    this.updateOpenStopOrders = this.updateOpenStopOrders.bind(this);
     this.pastOrderWorker = new myWorker();
   }
 
@@ -96,6 +100,7 @@ class Market extends Component {
     
     // Start polls for open orders and balances
     this.updateOpenOrders();
+    this.updateOpenStopOrders(account);
     this.updateBalances();
   }
 
@@ -210,6 +215,22 @@ class Market extends Component {
     }
   }
 
+  // Function to periodically update the list of open stop orders from the blockchain
+  async updateOpenStopOrders(account) {
+    try {
+      console.log("Updating Open Stop Orders...");
+      const my_open_stop_orders = await getOpenStopOrders(this.props.currencies, this.props.options.contracts, account);
+      this.setState({ my_open_stop_orders });
+    } finally {
+      // Set timer to recall same function after 5 seconds and store the timer in state
+      // for cleanup
+      const timer = setTimeout(() => this.updateOpenStopOrders(account), 7500);
+      let timers =  this.state.timers;
+      timers[1] = timer;
+      this.setState({ timers });
+    }
+  }
+
   /** ################# HELPER FUNCTIONS ################# **/
 
   // Helper function used as a callback function for the subscription function
@@ -258,7 +279,7 @@ class Market extends Component {
   /** ################# RENDER ################# **/
 
   render() {
-    const { visible, sidebar_info, account, past_orders, my_past_orders, balances, open_buy_orders, open_sell_orders, done_loading, done_loading_my_orders } = this.state;
+    const { visible, sidebar_info, account, past_orders, my_past_orders, balances, open_buy_orders, open_sell_orders, done_loading, done_loading_my_orders, my_open_stop_orders } = this.state;
     const { currencies, options } = this.props;
 
     // Build the title
@@ -281,6 +302,7 @@ class Market extends Component {
     if(!options.readOnly) {
       const logged_in_panes = [
         { menuItem: 'Open Orders', render: () => <Tab.Pane className="Market-tab-pane"><MyOrders currencies={currencies} options={options} orders={all_open_orders} account={account} /></Tab.Pane> },
+        { menuItem: 'Open Stop Orders', render: () => <Tab.Pane className="Market-tab-pane"><MyStopOrders currencies={currencies} orders={my_open_stop_orders} options={options} account={account} /></Tab.Pane> },
         { menuItem: 'My History', render: () => <Tab.Pane className="Market-tab-pane"><MyHistory currencies={currencies} options={options} orders={my_past_orders} account={account} /></Tab.Pane> },
       ];
       activity_panes = logged_in_panes.concat(activity_panes);
@@ -289,7 +311,8 @@ class Market extends Component {
     // Create the panels for the Order Pane Tabs
     const buy_panes = [
       { menuItem: 'Limit Order', render: () => <Tab.Pane className="Market-tab-pane"><LimitOrder currencies={currencies} options={options} last_price={last_order["price"]} balances={balances} /></Tab.Pane> },
-      { menuItem: 'Market Order', render: () => <Tab.Pane className="Market-tab-pane"><MarketOrder currencies={currencies} options={options} balances={balances} /></Tab.Pane> }
+      { menuItem: 'Market Order', render: () => <Tab.Pane className="Market-tab-pane"><MarketOrder currencies={currencies} options={options} balances={balances} /></Tab.Pane> },
+      { menuItem: 'Stop Order', render: () => <Tab.Pane className="Market-tab-pane"><StopOrder currencies={currencies} options={options} balances={balances} /></Tab.Pane> }
     ];
 
     return (

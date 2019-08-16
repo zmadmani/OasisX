@@ -19,6 +19,7 @@ const config = require("./../../config");
 const erc20Abi = require("./../../abi/standard-token/erc20");
 const WEthAbi = require("./../../abi/standard-token/ds-eth-token");
 const MatchingMarketAbi = require("./../../abi/maker-otc/matching-market");
+const OasisX = require("./../../abi/oasisX/oasisX");
 const SupportMethodsAbi = require("./../../abi/otc-support-methods/otc-support-methods");
 
 class App extends React.Component {
@@ -163,6 +164,7 @@ class App extends React.Component {
       DAI: new ethers.Contract(config["tokens"]["main"]["DAI"], erc20Abi.interface, contract_initializer),
       MKR: new ethers.Contract(config["tokens"]["main"]["MKR"], erc20Abi.interface, contract_initializer),
       Market: new ethers.Contract(config["market"]["main"]["address"], MatchingMarketAbi.interface, contract_initializer),
+      OasisX: new ethers.Contract(config["oasisX"]["address"], OasisX, contract_initializer),
       SupportMethods: new ethers.Contract(config["otcSupportMethods"]["main"]["address"], SupportMethodsAbi.interface, contract_initializer)
     };
   }

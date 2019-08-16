@@ -1,0 +1,82 @@
+.StopOrder {
+	background-color: #152128;
+	width: 100%;
+	padding: 1.5rem;
+	min-height: 600px;
+}
+
+.StopOrder-headers {
+	font-size: 1.15rem;
+	font-weight: 600;
+	line-height: 2rem;
+}
+
+.StopOrder-button {
+	margin-right: 1rem !important;
+}
+
+.StopOrder-mini-buttons {
+	font-size: 0.5em;
+	width: 100%;
+	padding: 0rem 0rem 0.5rem 0rem;
+}
+
+.StopOrder-amount-input {
+	padding: 0rem 0rem 0.5rem 0rem;
+}
+
+.StopOrder-color {
+	font-weight: 600;
+	font-size: 1.15rem;
+}
+
+.StopOrder-main-header {
+	font-size: 2rem;
+	font-weight: 600;
+	line-height: 2rem;
+	padding-bottom: 0.75rem;	
+	padding-top: 0.35rem;
+}
+
+.StopOrder-sub-header {
+	font-size: 1rem;
+	font-weight: 600;
+}
+
+.StopOrder-slippage-input {
+	width: 50px;
+	padding: 0px 5px;
+}
+
+.StopOrder-small-note {
+	font-size: 0.95rem;
+	padding-bottom: 1.7rem;
+	padding-top: 0.75rem;
+	float: right;
+}
+
+.StopOrder-tiny-note {
+	font-size: 0.7rem;
+}
+
+.StopOrder-pane {
+	padding: 0.3rem 0rem;
+}
+
+.bold {
+	font-weight: 700;
+}
+
+#StopOrder-explanation {
+	padding-bottom: 1rem;
+	font-size: 1rem;
+}
+
+hr {
+    display: block;
+    height: 1px;
+    border: 0;
+    border-top: 1px solid #ccc;
+    margin: 1em 0;
+    padding: 0;
+}

@@ -42,5 +42,8 @@
             "DAI":"0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359",
             "MKR":"0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2"
         }
+    },
+    "oasisX":{
+        "address": "0xe8311a86979bc3db7102d7a078c761c07daa7412"
     }
 }
