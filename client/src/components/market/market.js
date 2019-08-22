@@ -341,7 +341,7 @@ class Market extends Component {
             <Tab menu={{ fluid: true, tabular: true, attached: 'top' }} panes={activity_panes} />
           </Responsive>
           <Responsive maxWidth={Responsive.onlyTablet.minWidth}>
-            <Tab menu={{ fluid: true, tabular: true, attached: 'top' }} panes={activity_panes.slice(0,3)} />
+            <Tab menu={{ fluid: true, tabular: true, attached: 'top', className: 'Market-wrapped' }} panes={activity_panes} />
           </Responsive>
         </div>
 

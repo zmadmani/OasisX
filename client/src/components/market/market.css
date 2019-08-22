@@ -50,6 +50,12 @@
 	padding: 0.25rem;
 }
 
+.Market-wrapped {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+}
+
 .Market-tab-pane {
 	padding: 0 !important;
 	border: 0 !important;
