@@ -106,6 +106,7 @@ function getStopInfo(payCrypto, receiveCrypto, payAmt, receiveAmt, condUpDown, c
 	// Need to get a proper price and correct the updown to make sense in the context of having a base currency
 	payAmt = ethers.utils.formatUnits(payAmt.toString(), 'ether');
 	receiveAmt = ethers.utils.formatUnits(receiveAmt.toString(), 'ether');
+	condUpDown = condUpDown.toNumber();
 	if (payCrypto.toUpperCase() === currencies[0].toUpperCase() && receiveCrypto.toUpperCase() === currencies[1].toUpperCase()) {
 		// SELL
 		condUpDown = condUpDown === 1 ? 0 : 1;
