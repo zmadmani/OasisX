@@ -152,6 +152,7 @@ class App extends React.Component {
 
     if(window.web3) {
       ethereum = window.ethereum ? window.ethereum : window.web3.currentProvider;
+      ethereum.enable()
     } else {
     }
     return ethereum;
