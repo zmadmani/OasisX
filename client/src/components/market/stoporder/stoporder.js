@@ -86,12 +86,13 @@ class StopOrder extends Component {
   }
 
   getReceiveLimit(orderType, price, payAmt) {
-    const priceBN = ethers.utils.bigNumberify(price.toString());
-    const payAmtBN = ethers.utils.bigNumberify(payAmt.toString());
+    let payAmtEther = ethers.utils.formatUnits(payAmt.toString(), "ether").toString();
+    price = parseFloat(price);
+    payAmtEther = parseFloat(payAmtEther);
     if (orderType === "BUY") {
-      return payAmtBN.div(priceBN).toString();
+      return ethers.utils.parseUnits((payAmtEther/price).toString(), "ether").toString();
     } else {
-      return payAmtBN.mul(priceBN).toString();
+      return ethers.utils.parseUnits((payAmtEther*price).toString(), "ether").toString();
     }
   }
 
