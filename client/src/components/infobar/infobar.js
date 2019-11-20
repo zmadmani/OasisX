@@ -184,10 +184,12 @@ class Infobar extends Component {
       username = <HumanName address={account} />
     }
 
+    var mcdCheckbox = <span className="Infobar-mcd-text"><Checkbox checked={options.isMCD} onClick={() => options.setMCD(!options.isMCD)} /> (Use MCD?)</span>;
+
     return (
       <div id='Infobar'>
         {/* Insert the account information bar */}
-        <div className='Infobar-header'>{username}{x_icon}</div>
+        <div className='Infobar-header'>{username} {mcdCheckbox} {x_icon}</div>
         
         {/* Insert the Table of Balances/Approvals */}
         <Table basic='very' padded={"very"} striped unstackable id="Infobar-table">
