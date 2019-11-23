@@ -9,7 +9,6 @@ import './infobar.css'
 
 // Import src code
 import WrapStation from './wrapstation/wrapstation'
-import Settings from './settings/settings'
 import HumanName from '../utils/humanname/humanname'
 
 // Set up constants
