@@ -68,7 +68,7 @@ class Market extends Component {
     let account = await options.signer.getAddress();
 
     this.setState({ logged_latest_block: await options.provider.getBlockNumber() }, () => {
-      // Get past orders for 5 years (5 * 5760) in a webworker thread
+      // Get past orders for 5 days (5 * 5760) in a webworker thread
       this.pastOrderWorker.addEventListener('message', (event) => {
         let type = event.data.type;
         let payload = event.data.payload;

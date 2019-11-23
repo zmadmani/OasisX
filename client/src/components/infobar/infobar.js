@@ -24,6 +24,7 @@ class Infobar extends Component {
       currencies: {
         "WETH": { balance: 0, approved: 0 },
         "DAI": { balance: 0, approved: 0 },
+        "SAI": { balance: 0, approved: 0 },
         "MKR": { balance: 0, approved: 0 },
         "ETH": { balance: 0, approved: 0  }
       },
@@ -50,14 +51,15 @@ class Infobar extends Component {
         const market_address = options.contracts.Market.address;
 
         // Retrieve the balances and approvals
-        const [weth_balance, dai_balance, mkr_balance] = await this.getBalances(account);
-        const [weth_approval, dai_approval, mkr_approval] = await this.getApprovals(account, market_address);
+        const [weth_balance, dai_balance, sai_balance, mkr_balance] = await this.getBalances(account);
+        const [weth_approval, dai_approval, sai_approval, mkr_approval] = await this.getApprovals(account, market_address);
         const eth_balance = await options.provider.getBalance(account);
 
         // Create and store currencies object
         var currencies = {
           "WETH": { balance: weth_balance.toString(), approved: weth_approval.toString() },
           "DAI": { balance: dai_balance.toString(), approved: dai_approval.toString() },
+          "SAI": { balance: sai_balance.toString(), approved: sai_approval.toString() },
           "MKR": { balance: mkr_balance.toString(), approved: mkr_approval.toString() },
           "ETH": { balance: eth_balance.toString(), approved: MAX_VAL  }
         };
@@ -112,8 +114,9 @@ class Infobar extends Component {
     const { options } = this.props;
     const weth_promise = options.contracts.WETH.balanceOf(account);
     const dai_promise = options.contracts.DAI.balanceOf(account);
+    const sai_promise = options.contracts.SAI.balanceOf(account);
     const mkr_promise = options.contracts.MKR.balanceOf(account);
-    return Promise.all([weth_promise, dai_promise, mkr_promise]);
+    return Promise.all([weth_promise, dai_promise, sai_promise, mkr_promise]);
   }
 
   // Helper function to get approvals for all the currencies in this market for the given account.
@@ -121,8 +124,9 @@ class Infobar extends Component {
     const { options } = this.props;
     const weth_promise = await options.contracts.WETH.allowance(account, market_address);
     const dai_promise = await options.contracts.DAI.allowance(account, market_address);
+    const sai_promise = await options.contracts.SAI.allowance(account, market_address);
     const mkr_promise = await options.contracts.MKR.allowance(account, market_address);
-    return Promise.all([weth_promise, dai_promise, mkr_promise])
+    return Promise.all([weth_promise, dai_promise, sai_promise, mkr_promise])
   }
 
   // Helper function that gets the UI balance, meaning it is in Ethers (not Gwei) and Rounded to the nearest 1000ths place.
@@ -169,7 +173,7 @@ class Infobar extends Component {
 
   render() {
     const { currencies, account } = this.state
-    const { padded, closeSidebar, options, setGasPrice } = this.props
+    const { padded, closeSidebar, options } = this.props
     const currenciesInformation = this.buildRenderList();
 
     // Display a X icon if the user is on mobile (indicated b padded).
@@ -184,12 +188,10 @@ class Infobar extends Component {
       username = <HumanName address={account} />
     }
 
-    var mcdCheckbox = <span className="Infobar-mcd-text"><Checkbox checked={options.isMCD} onClick={() => options.setMCD(!options.isMCD)} /> (Use MCD?)</span>;
-
     return (
       <div id='Infobar'>
         {/* Insert the account information bar */}
-        <div className='Infobar-header'>{username} {mcdCheckbox} {x_icon}</div>
+        <div className='Infobar-header'>{username} {x_icon}</div>
         
         {/* Insert the Table of Balances/Approvals */}
         <Table basic='very' padded={"very"} striped unstackable id="Infobar-table">
@@ -231,7 +233,6 @@ class Infobar extends Component {
 
         {/* Insert the wrapping station widget into the sidebar. */}
         <WrapStation options={options} weth_balance={currencies["WETH"]["balance"]} eth_balance={currencies["ETH"]["balance"]} />
-        <Settings options={options} setGasPrice={setGasPrice} />
       </div>
     )
   }

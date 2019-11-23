@@ -12,6 +12,7 @@ import Infobar from '../infobar/infobar';
 
 const other_buttons = [
   { name: 'WETH/DAI', href: '/WETH_DAI' },
+  { name: 'WETH/SAI', href: '/WETH_SAI' },
   { name: 'MKR/WETH', href: '/MKR_WETH'},
   { name: 'MKR/DAI', href: '/MKR_DAI'}
 ];

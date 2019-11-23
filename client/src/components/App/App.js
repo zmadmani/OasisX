@@ -33,8 +33,6 @@ class App extends React.Component {
         readOnly: true,
         handleLogin: this.handleLogin,
         handleReLogin: this.handleReLogin,
-        setMCD: this.setMCD,
-        isMCD: true,
         gasPrice: 10,
         defaultGasPrice: 10
       }
@@ -42,7 +40,6 @@ class App extends React.Component {
 
     this.handleLogin = this.handleLogin.bind(this);
     this.handleReLogin = this.handleReLogin.bind(this);
-    this.setMCD = this.setMCD.bind(this);
   }
 
   componentWillMount() {
@@ -136,7 +133,6 @@ class App extends React.Component {
   buildOptions(provider, signer, contracts, readOnly) {
     const defaultGasPrice = ethers.utils.parseUnits('10','gwei');
     let gasPrice = localStorage.getItem("gasPrice") ? ethers.utils.bigNumberify(localStorage.getItem("gasPrice").toString()) : defaultGasPrice;
-    const useMCD = localStorage.getItem("useMCD") ? JSON.parse(localStorage.getItem("useMCD")) : true;
     return {
       provider: provider,
       signer: signer,
@@ -144,8 +140,6 @@ class App extends React.Component {
       readOnly: readOnly,
       handleLogin: this.handleLogin,
       handleReLogin: this.handleReLogin,
-      setMCD: this.setMCD,
-      isMCD: useMCD,
       gasPrice: gasPrice,
       defaultGasPrice: defaultGasPrice
     }
@@ -175,20 +169,6 @@ class App extends React.Component {
       OasisX: new ethers.Contract(config["oasisX"]["address"], OasisX, contract_initializer),
       SupportMethods: new ethers.Contract(config["otcSupportMethods"]["main"]["address"], SupportMethodsAbi.interface, contract_initializer)
     };
-  }
-
-  setMCD(useMCD) {
-    const { options } = this.state;
-    const contract_initializer = options.readOnly ? options.provider : options.signer;
-    if (useMCD) {
-      options.contracts.DAI = new ethers.Contract(config["tokens"]["main"]["DAI"], erc20Abi.interface, contract_initializer);
-      options.isMCD = true;
-    } else {
-      options.contracts.DAI = new ethers.Contract(config["tokens"]["main"]["SAI"], erc20Abi.interface, contract_initializer);
-      options.isMCD = false;
-    }
-    localStorage.setItem("useMCD", JSON.stringify(useMCD));
-    this.setState({ options });
   }
 
   // Helper method to set the default gas price used in all transactions
@@ -232,6 +212,7 @@ class App extends React.Component {
                 <Switch>
                   <Route exact path='/' render={() => <Home />} />
                   <Route exact path='/login' render={() => <Login options={options} />} />
+                  <Route exact path='/WETH_SAI' render={() => <Market key={'WETH_SAI'} options={options} currencies={['WETH', 'SAI']} />} />
                   <Route exact path='/WETH_DAI' render={() => <Market key={'WETH_DAI'} options={options} currencies={['WETH', 'DAI']} />} />
                   <Route exact path='/MKR_WETH' render={() => <Market key={'MKR_WETH'} options={options} currencies={['MKR', 'WETH']} />} />
                   <Route exact path='/MKR_DAI' render={() => <Market  key={'MKR_DAI'} options={options} currencies={['MKR', 'DAI']} />} />
