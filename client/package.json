@@ -16,7 +16,7 @@
     "scrypt": "^6.0.3",
     "semantic-ui-css": "^2.3.3",
     "semantic-ui-react": "^0.87.1",
-    "serve": "^10.1.1"
+    "serve": "^10.1.2"
   },
   "scripts": {
     "start": "react-app-rewired start",
